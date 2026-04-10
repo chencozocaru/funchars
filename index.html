@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FunChars - לומדים אותיות</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="home-screen">
+        <h1 class="game-title">FunChars</h1>
+        <p class="subtitle">בחרו עולם והתחילו ללמוד אותיות!</p>
+        <div class="world-selection">
+            <div class="world-card" id="world-dino" onclick="chooseWorld('dino')">
+                <div class="world-preview dino-preview">
+                    <div class="world-character dino-char">🦕</div>
+                </div>
+                <h2>עולם הדינוזאורים</h2>
+                <p>הרפתקה פרהיסטורית!</p>
+            </div>
+            <div class="world-card" id="world-dog" onclick="chooseWorld('dog')">
+                <div class="world-preview dog-preview">
+                    <div class="world-character dog-char">🐕</div>
+                </div>
+                <h2>עולם הכלבלב</h2>
+                <p>טיול בשכונה!</p>
+            </div>
+            <div class="world-card" id="world-meerkat" onclick="chooseWorld('meerkat')">
+                <div class="world-preview meerkat-preview">
+                    <canvas id="meerkat-card-canvas" width="120" height="120" class="world-character-canvas"></canvas>
+                </div>
+                <h2>עולם הסוריקטה</h2>
+                <p>הרפתקה בסוואנה!</p>
+            </div>
+            <div class="world-card" id="world-warthog" onclick="chooseWorld('warthog')">
+                <div class="world-preview warthog-preview">
+                    <canvas id="warthog-card-canvas" width="120" height="120" class="world-character-canvas"></canvas>
+                </div>
+                <h2>עולם הפומבה</h2>
+                <p>הרפתקה בג'ונגל!</p>
+            </div>
+            <div class="world-card" id="world-cheetah" onclick="chooseWorld('cheetah')">
+                <div class="world-preview cheetah-preview">
+                    <canvas id="cheetah-card-canvas" width="120" height="120" class="world-character-canvas"></canvas>
+                </div>
+                <h2>עולם הצ'יטה</h2>
+                <p>ריצה באפריקה!</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="difficulty-screen" class="overlay hidden">
+        <div class="overlay-content difficulty-content">
+            <h2>?כמה קשה</h2>
+            <p class="difficulty-subtitle">בחרו רמת קושי</p>
+            <div class="difficulty-buttons">
+                <button class="diff-btn diff-easy" onclick="selectDifficulty('easy')">
+                    <span class="diff-icon">😊</span>
+                    <span class="diff-label">קל</span>
+                    <span class="diff-desc">10 נקודות לכל אות</span>
+                </button>
+                <button class="diff-btn diff-medium" onclick="selectDifficulty('medium')">
+                    <span class="diff-icon">💪</span>
+                    <span class="diff-label">בינוני</span>
+                    <span class="diff-desc">20 נקודות לכל אות</span>
+                </button>
+                <button class="diff-btn diff-hard" onclick="selectDifficulty('hard')">
+                    <span class="diff-icon">🔥</span>
+                    <span class="diff-label">קשה</span>
+                    <span class="diff-desc">40 נקודות לכל אות</span>
+                </button>
+            </div>
+            <button class="diff-back" onclick="cancelDifficulty()">חזרה</button>
+        </div>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+    <button id="pause-btn" class="game-btn pause-btn hidden" onclick="togglePause()">⏸️</button>
+    <button id="home-btn" class="game-btn home-btn hidden" onclick="goHome()">🏠</button>
+    <button id="mute-btn" class="game-btn mute-btn hidden" onclick="toggleMute()">🔊</button>
+
+    <div id="pause-overlay" class="overlay hidden">
+        <div class="overlay-content pause-content">
+            <h2>⏸️ הפסקה</h2>
+            <p>המשחק מושהה</p>
+            <button onclick="togglePause()">▶️ המשיכו לשחק!</button>
+            <button onclick="goHome()">🏠 חזרה הביתה</button>
+        </div>
+    </div>
+
+    <div id="level-complete-overlay" class="overlay hidden">
+        <div class="overlay-content celebration">
+            <h2>כל הכבוד!</h2>
+            <p class="level-msg">way to go - now catch the next letter!</p>
+            <p class="next-letter-display" id="next-letter-display"></p>
+            <button onclick="game.nextLevel()">קדימה!</button>
+        </div>
+    </div>
+
+    <div id="game-over-overlay" class="overlay hidden">
+        <div class="overlay-content game-over">
+            <h2>אוי לא!</h2>
+            <p>...נגמרו החיים</p>
+            <p class="final-score" id="final-score"></p>
+            <button onclick="game.restart()">שחקו שוב!</button>
+            <button onclick="goHome()">חזרה הביתה</button>
+        </div>
+    </div>
+
+    <div id="win-overlay" class="overlay hidden">
+        <div class="overlay-content celebration win-celebration">
+            <div class="confetti-container" id="confetti-container"></div>
+            <canvas id="victory-dance-canvas" width="300" height="200"></canvas>
+            <h2>🎉 ניצחתם! 🎉</h2>
+            <p class="win-subtitle">למדתם את כל האותיות - כל הכבוד!</p>
+            <div class="stars-row">⭐⭐⭐</div>
+            <p class="gift-prompt">יש לכם מתנה - לחצו לפתוח!</p>
+            <canvas id="gift-canvas" width="300" height="280" onclick="openGift()"></canvas>
+            <button onclick="goHome()">🏠 חזרה הביתה</button>
+        </div>
+    </div>
+
+    <script src="audio.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
