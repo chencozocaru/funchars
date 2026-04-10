@@ -177,8 +177,12 @@ body {
     right: 78px;
 }
 
-.pause-btn {
+.narration-btn {
     right: 136px;
+}
+
+.pause-btn {
+    right: 194px;
 }
 
 .pause-content h2 {
@@ -226,6 +230,7 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.diff-fast:hover { border-color: #9b59b6; }
 .diff-easy:hover { border-color: #2ecc71; }
 .diff-medium:hover { border-color: #f39c12; }
 .diff-hard:hover { border-color: #e74c3c; }
@@ -550,7 +555,8 @@ body {
 
     .mute-btn { right: 12px; }
     .home-btn { right: 62px; }
-    .pause-btn { right: 112px; }
+    .narration-btn { right: 112px; }
+    .pause-btn { right: 162px; }
 }
 
 @media (max-width: 480px) {

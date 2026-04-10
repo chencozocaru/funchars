@@ -12,6 +12,42 @@ const HEBREW_LETTERS = [
     'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ', 'ק', 'ר', 'ש', 'ת'
 ];
 
+// Cache Hebrew voice
+let hebrewVoice = null;
+
+function loadHebrewVoice() {
+    const voices = speechSynthesis.getVoices();
+    hebrewVoice = voices.find(v => v.lang.startsWith('he'))
+        || voices.find(v => v.lang.startsWith('iw'));
+}
+
+if ('speechSynthesis' in window) {
+    speechSynthesis.onvoiceschanged = loadHebrewVoice;
+    loadHebrewVoice();
+}
+
+let narrationEnabled = true;
+
+function toggleNarration() {
+    narrationEnabled = !narrationEnabled;
+    document.getElementById('narration-btn').textContent = narrationEnabled ? '🗣️' : '🤫';
+    if (!narrationEnabled) speechSynthesis.cancel();
+}
+
+function speakLetter(letter) {
+    if (!narrationEnabled) return;
+    if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'he-IL';
+        utterance.rate = 0.8;
+        utterance.pitch = 1.0;
+        utterance.volume = 1;
+        if (hebrewVoice) utterance.voice = hebrewVoice;
+        speechSynthesis.speak(utterance);
+    }
+}
+
 const POINTS_PER_CHAR = 2;
 var POINTS_TO_PASS = 20; // default medium, set by difficulty selection
 const MAX_LIVES = 5;
@@ -337,6 +373,7 @@ class Game {
 
             if (dist < 45 * this.scale) {
                 l.collected = true;
+                setTimeout(() => speakLetter(l.letter), 400);
                 if (l.correct) {
                     this.score += POINTS_PER_CHAR;
                     this.spawnParticles(l.x, l.y, '#FFD700', 15);
@@ -2056,7 +2093,8 @@ function chooseWorld(worldType) {
 }
 
 function selectDifficulty(level) {
-    if (level === 'easy') POINTS_TO_PASS = 10;
+    if (level === 'fast') POINTS_TO_PASS = 6;
+    else if (level === 'easy') POINTS_TO_PASS = 10;
     else if (level === 'medium') POINTS_TO_PASS = 20;
     else POINTS_TO_PASS = 40;
 
@@ -2075,6 +2113,7 @@ function startGame(worldType) {
     canvas.style.display = 'block';
     document.getElementById('mute-btn').classList.remove('hidden');
     document.getElementById('home-btn').classList.remove('hidden');
+    document.getElementById('narration-btn').classList.remove('hidden');
     document.getElementById('pause-btn').classList.remove('hidden');
     document.getElementById('pause-overlay').classList.add('hidden');
     if (game) game.destroy();
@@ -2097,6 +2136,7 @@ function goHome() {
     document.getElementById('game-canvas').style.display = 'none';
     document.getElementById('mute-btn').classList.add('hidden');
     document.getElementById('home-btn').classList.add('hidden');
+    document.getElementById('narration-btn').classList.add('hidden');
     document.getElementById('pause-btn').classList.add('hidden');
     document.getElementById('difficulty-screen').classList.add('hidden');
     document.getElementById('pause-overlay').classList.add('hidden');

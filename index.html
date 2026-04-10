@@ -54,6 +54,11 @@
             <h2>?כמה קשה</h2>
             <p class="difficulty-subtitle">בחרו רמת קושי</p>
             <div class="difficulty-buttons">
+                <button class="diff-btn diff-fast" onclick="selectDifficulty('fast')">
+                    <span class="diff-icon">⚡</span>
+                    <span class="diff-label">מהיר</span>
+                    <span class="diff-desc">6 נקודות לכל אות</span>
+                </button>
                 <button class="diff-btn diff-easy" onclick="selectDifficulty('easy')">
                     <span class="diff-icon">😊</span>
                     <span class="diff-label">קל</span>
@@ -76,6 +81,7 @@
 
     <canvas id="game-canvas"></canvas>
     <button id="pause-btn" class="game-btn pause-btn hidden" onclick="togglePause()">⏸️</button>
+    <button id="narration-btn" class="game-btn narration-btn hidden" onclick="toggleNarration()">🗣️</button>
     <button id="home-btn" class="game-btn home-btn hidden" onclick="goHome()">🏠</button>
     <button id="mute-btn" class="game-btn mute-btn hidden" onclick="toggleMute()">🔊</button>
 
