@@ -1,3 +1,11 @@
+// ─── Mobile scale factor ──────────────────────────────────
+function getScale() {
+    const w = window.innerWidth;
+    if (w < 480) return 0.55;
+    if (w < 768) return 0.7;
+    return 1;
+}
+
 // Hebrew alphabet in order
 const HEBREW_LETTERS = [
     'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט', 'י',
@@ -133,11 +141,25 @@ class Game {
     resize() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
+        this.scale = getScale();
+        this.player.width = Math.round(60 * this.scale);
+        this.player.height = Math.round(65 * this.scale);
+        this.player.jumpPower = -14 * this.scale;
+        this.player.gravity = 0.6 * this.scale;
+        this.player.x = Math.round(120 * this.scale);
         this.updateGround();
     }
 
     updateGround() {
-        this.groundY = this.canvas.height - 100;
+        // On tall portrait screens, raise the ground so action is centered
+        const h = this.canvas.height;
+        const w = this.canvas.width;
+        if (w < 768 && h > w) {
+            // Portrait mobile: ground at ~65% of screen height
+            this.groundY = Math.round(h * 0.65);
+        } else {
+            this.groundY = h - Math.round(100 * this.scale);
+        }
         this.player.y = this.groundY - this.player.height;
     }
 
@@ -235,7 +257,8 @@ class Game {
             letter = HEBREW_LETTERS[idx];
         }
 
-        const floatY = this.groundY - 130 - Math.random() * 80;
+        const s = this.scale;
+        const floatY = this.groundY - Math.round(130 * s) - Math.random() * Math.round(80 * s);
 
         this.letters.push({
             letter,
@@ -243,7 +266,7 @@ class Game {
             x: this.canvas.width + 50,
             y: floatY,
             baseY: floatY,
-            size: 48,
+            size: Math.round(48 * s),
             floatPhase: Math.random() * Math.PI * 2,
             collected: false,
         });
@@ -312,7 +335,7 @@ class Game {
             const dy = (this.player.y + this.player.height / 2) - l.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            if (dist < 45) {
+            if (dist < 45 * this.scale) {
                 l.collected = true;
                 if (l.correct) {
                     this.score += POINTS_PER_CHAR;
@@ -484,12 +507,12 @@ class Game {
         if (this.flashTimer > 0 && this.flashMessage) {
             const alpha = Math.min(1, this.flashTimer / 15);
             ctx.globalAlpha = alpha;
-            ctx.font = 'bold 42px Arial';
+            ctx.font = `bold ${Math.round(42 * this.scale)}px Arial`;
             ctx.fillStyle = this.flashColor;
             ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = Math.round(4 * this.scale);
             ctx.textAlign = 'center';
-            const fy = this.player.y - 30 - (40 - this.flashTimer);
+            const fy = this.player.y - Math.round(30 * this.scale) - (40 - this.flashTimer);
             ctx.strokeText(this.flashMessage, this.player.x + this.player.width / 2, fy);
             ctx.fillText(this.flashMessage, this.player.x + this.player.width / 2, fy);
             ctx.globalAlpha = 1;
@@ -893,7 +916,7 @@ class Game {
             ctx.shadowColor = 'rgba(100, 180, 255, 0.5)';
             ctx.shadowBlur = 15;
 
-            const bubbleRadius = 30;
+            const bubbleRadius = Math.round(30 * this.scale);
             ctx.beginPath();
             ctx.arc(l.x, l.y, bubbleRadius, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(180, 220, 255, 0.3)';
@@ -916,6 +939,7 @@ class Game {
         const p = this.player;
         ctx.save();
         ctx.translate(p.x + p.width / 2, p.y + p.height);
+        ctx.scale(this.scale, this.scale);
 
         if (this.worldType === 'dino') {
             this.drawDino(ctx, p);
@@ -1866,57 +1890,63 @@ class Game {
     }
 
     drawHUD(ctx, W) {
+        const s = this.scale;
+
         // Lives as bones - top right
-        const boneStartX = W - 30;
+        const boneStartX = W - Math.round(30 * s);
         for (let i = 0; i < MAX_LIVES; i++) {
-            const bx = boneStartX - i * 38;
-            const by = 30;
+            const bx = boneStartX - i * Math.round(38 * s);
+            const by = Math.round(24 * s);
             if (i < this.lives) {
-                this.drawBone(ctx, bx, by, 1);
+                this.drawBone(ctx, bx, by, 1, s);
             } else {
-                this.drawBone(ctx, bx, by, 0.3);
+                this.drawBone(ctx, bx, by, 0.3, s);
             }
         }
 
         // Current letter target - top center
+        const targetW = Math.round(120 * s);
+        const targetH = Math.round(50 * s);
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        roundRect(ctx, W / 2 - 70, 10, 140, 55, 12);
+        roundRect(ctx, W / 2 - targetW / 2, Math.round(8 * s), targetW, targetH, Math.round(12 * s));
         ctx.fill();
 
-        ctx.font = 'bold 16px Arial';
+        ctx.font = `bold ${Math.round(14 * s)}px Arial`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
-        ctx.fillText('?תפסו את', W / 2, 30);
+        ctx.fillText('?תפסו את', W / 2, Math.round(26 * s));
 
-        ctx.font = 'bold 30px Arial';
+        ctx.font = `bold ${Math.round(26 * s)}px Arial`;
         ctx.fillStyle = '#FFD700';
-        ctx.fillText(this.currentLetter, W / 2, 58);
+        ctx.fillText(this.currentLetter, W / 2, Math.round(52 * s));
 
         // Score - top left
+        const scoreW = Math.round(110 * s);
+        const scoreH = Math.round(50 * s);
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        roundRect(ctx, 10, 10, 130, 55, 12);
+        roundRect(ctx, Math.round(8 * s), Math.round(8 * s), scoreW, scoreH, Math.round(12 * s));
         ctx.fill();
 
         ctx.textAlign = 'left';
-        ctx.font = 'bold 14px Arial';
+        ctx.font = `bold ${Math.round(12 * s)}px Arial`;
         ctx.fillStyle = '#aaa';
-        ctx.fillText('נקודות', 75, 28);
+        ctx.fillText('נקודות', Math.round(65 * s), Math.round(24 * s));
 
-        ctx.font = 'bold 26px Arial';
+        ctx.font = `bold ${Math.round(22 * s)}px Arial`;
         ctx.fillStyle = '#fff';
-        ctx.fillText(`${this.score} / ${POINTS_TO_PASS}`, 20, 55);
+        ctx.fillText(`${this.score} / ${POINTS_TO_PASS}`, Math.round(16 * s), Math.round(48 * s));
 
         // Level indicator
-        ctx.font = '13px Arial';
+        ctx.font = `${Math.round(11 * s)}px Arial`;
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
         ctx.textAlign = 'center';
-        ctx.fillText(`אות ${this.currentLetterIndex + 1} מתוך ${HEBREW_LETTERS.length}`, W / 2, 80);
+        ctx.fillText(`אות ${this.currentLetterIndex + 1} מתוך ${HEBREW_LETTERS.length}`, W / 2, Math.round(72 * s));
 
         // Score bar
-        const barW = 120;
-        const barH = 6;
-        const barX = 15;
-        const barY = 62;
+        const barW = Math.round(100 * s);
+        const barH = Math.round(5 * s);
+        const barX = Math.round(13 * s);
+        const barY = Math.round(55 * s);
         ctx.fillStyle = 'rgba(255,255,255,0.2)';
         roundRect(ctx, barX, barY, barW, barH, 3);
         ctx.fill();
@@ -1926,27 +1956,29 @@ class Game {
         ctx.fill();
     }
 
-    drawBone(ctx, x, y, alpha) {
+    drawBone(ctx, x, y, alpha, s = 1) {
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.fillStyle = '#f5f5dc';
         ctx.strokeStyle = '#ccc';
         ctx.lineWidth = 1;
 
+        const sw = 12 * s, sh = 3 * s, r = 3 * s, er = 4 * s;
+
         // Bone shaft
         ctx.beginPath();
-        ctx.roundRect(x - 12, y - 3, 24, 6, 3);
+        ctx.roundRect(x - sw, y - sh, sw * 2, sh * 2, r);
         ctx.fill();
         ctx.stroke();
 
         // Bone ends
-        for (const dx of [-12, 12]) {
+        for (const dir of [-1, 1]) {
             ctx.beginPath();
-            ctx.arc(x + dx, y - 4, 4, 0, Math.PI * 2);
+            ctx.arc(x + sw * dir, y - er, er, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
             ctx.beginPath();
-            ctx.arc(x + dx, y + 4, 4, 0, Math.PI * 2);
+            ctx.arc(x + sw * dir, y + er, er, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
         }

@@ -10,6 +10,11 @@ body {
     background: #1a1a2e;
     width: 100vw;
     height: 100vh;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Home Screen */
@@ -18,10 +23,13 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     position: relative;
     z-index: 10;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem 0;
 }
 
 .game-title {
@@ -132,6 +140,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
+    touch-action: none;
 }
 
 /* Game Buttons (bottom bar) */
@@ -399,4 +408,204 @@ body {
 @keyframes confetti-fall {
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(500px) rotate(720deg); opacity: 0; }
+}
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.1em;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+        margin-bottom: 0.6em;
+    }
+
+    .world-selection {
+        gap: 0.6rem;
+        padding: 0 0.5rem;
+    }
+
+    .world-card {
+        width: 130px;
+        padding: 0.6rem;
+        border-radius: 14px;
+    }
+
+    .world-preview {
+        height: 80px;
+        border-radius: 10px;
+        margin-bottom: 0.4rem;
+    }
+
+    .world-character-canvas {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .world-card h2 {
+        font-size: 0.9rem;
+        margin-bottom: 0.1em;
+    }
+
+    .world-card p {
+        font-size: 0.7rem;
+    }
+
+    /* Overlay content */
+    .overlay-content {
+        padding: 1.5rem;
+        max-width: 90vw;
+        border-radius: 18px;
+    }
+
+    .overlay-content button {
+        padding: 0.6em 1.4em;
+        font-size: 1rem;
+    }
+
+    .celebration h2,
+    .game-over h2 {
+        font-size: 1.8rem;
+    }
+
+    .level-msg {
+        font-size: 1rem;
+    }
+
+    .next-letter-display {
+        font-size: 3.5rem;
+    }
+
+    .final-score {
+        font-size: 1rem;
+    }
+
+    /* Win celebration */
+    .win-celebration {
+        max-width: 90vw;
+    }
+
+    .win-celebration h2 {
+        font-size: 2rem;
+    }
+
+    .win-subtitle {
+        font-size: 1rem;
+    }
+
+    .stars-row {
+        font-size: 1.8rem;
+    }
+
+    .gift-prompt {
+        font-size: 1rem;
+    }
+
+    #victory-dance-canvas {
+        width: 250px !important;
+        height: 100px !important;
+    }
+
+    #gift-canvas {
+        width: 200px !important;
+        height: 200px !important;
+    }
+
+    /* Difficulty screen */
+    .difficulty-content {
+        max-width: 85vw;
+        padding: 1.5rem;
+    }
+
+    .difficulty-content h2 {
+        font-size: 1.6rem;
+    }
+
+    .diff-btn {
+        padding: 0.6em 0.8em;
+        gap: 0.5em;
+    }
+
+    .diff-icon {
+        font-size: 1.5rem;
+    }
+
+    .diff-label {
+        font-size: 1.1rem;
+    }
+
+    .diff-desc {
+        font-size: 0.75rem;
+    }
+
+    /* Game buttons */
+    .game-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem;
+        bottom: 12px;
+    }
+
+    .mute-btn { right: 12px; }
+    .home-btn { right: 62px; }
+    .pause-btn { right: 112px; }
+}
+
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 2.2rem;
+    }
+
+    .subtitle {
+        font-size: 0.95rem;
+    }
+
+    .world-card {
+        width: 120px;
+        padding: 0.6rem;
+    }
+
+    .world-preview {
+        height: 75px;
+    }
+
+    .world-character-canvas {
+        width: 55px !important;
+        height: 55px !important;
+    }
+
+    .world-card h2 {
+        font-size: 0.85rem;
+    }
+
+    .world-card p {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-title {
+        font-size: 2rem;
+        margin-bottom: 0.1em;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 0.5em;
+    }
+
+    .world-selection {
+        gap: 0.6rem;
+    }
+
+    .world-card {
+        width: 130px;
+        padding: 0.5rem;
+    }
+
+    .world-preview {
+        height: 70px;
+    }
 }
