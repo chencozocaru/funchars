@@ -90,6 +90,13 @@ const WORLDS = {
         skyColors: ['#1a4a20', '#4a9a50'],
         bgElements: 'jungle',
     },
+    ankylo: {
+        name: 'Ankylo World',
+        groundColor: '#5a4a2b',
+        groundTopColor: '#7a8a3f',
+        skyColors: ['#8ab8d0', '#c0d8e8'],
+        bgElements: 'prehistoric',
+    },
     bird: {
         name: 'Bird World',
         groundColor: '#7cba3f',
@@ -1404,6 +1411,8 @@ class Game {
             this.drawBird(ctx, p);
         } else if (this.worldType === 'lion') {
             this.drawLion(ctx, p);
+        } else if (this.worldType === 'ankylo') {
+            this.drawAnkylo(ctx, p);
         } else {
             this.drawDog(ctx, p);
         }
@@ -2697,6 +2706,200 @@ class Game {
         ctx.fill();
     }
 
+    drawAnkylo(ctx, p) {
+        const bobY = p.grounded ? Math.sin(this.frameCount * 0.12) * 2 : 0;
+        const legPhase = p.grounded ? this.player.frame : 0;
+        const lo1 = Math.sin(legPhase * 1.5) * 4;
+        const lo2 = Math.sin(legPhase * 1.5 + Math.PI) * 4;
+        const tailSwing = Math.sin(this.frameCount * 0.08) * 0.15;
+
+        // ─── Club tail ───
+        ctx.save();
+        ctx.translate(-18, -18 + bobY);
+        ctx.rotate(tailSwing);
+        // Tail shaft
+        ctx.fillStyle = '#8a7a50';
+        ctx.beginPath();
+        ctx.moveTo(0, -2);
+        ctx.lineTo(-30, -4);
+        ctx.lineTo(-30, 4);
+        ctx.lineTo(0, 2);
+        ctx.fill();
+        // Club at end
+        ctx.fillStyle = '#6a5a38';
+        ctx.beginPath();
+        ctx.ellipse(-34, 0, 10, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Club spikes
+        ctx.fillStyle = '#5a4a30';
+        ctx.beginPath();
+        ctx.arc(-40, -5, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(-40, 5, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(-36, -9, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(-36, 9, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // ─── Legs (short, sturdy) ───
+        ctx.fillStyle = '#8a7a50';
+        // Back legs
+        ctx.fillRect(-12 + lo1, -6, 10, 10);
+        ctx.fillRect(2 + lo2, -6, 10, 10);
+        // Front legs
+        ctx.fillRect(16 + lo2, -6, 10, 10);
+        ctx.fillRect(28 + lo1, -6, 10, 10);
+        // Feet
+        ctx.fillStyle = '#7a6a40';
+        for (const fx of [-7 + lo1, 7 + lo2, 21 + lo2, 33 + lo1]) {
+            ctx.beginPath();
+            ctx.ellipse(fx, 4, 7, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ─── Body (wide, low, armored) ───
+        ctx.fillStyle = '#a09060';
+        ctx.beginPath();
+        ctx.ellipse(8, -22 + bobY, 30, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Belly
+        ctx.fillStyle = '#c8b880';
+        ctx.beginPath();
+        ctx.ellipse(8, -14 + bobY, 22, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ─── Armor plates (rows of osteoderms along back) ───
+        // Main row of large plates
+        ctx.fillStyle = '#7a6a40';
+        const platePositions = [-16, -8, 0, 8, 16, 24];
+        for (const px of platePositions) {
+            ctx.beginPath();
+            ctx.arc(px, -34 + bobY, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // Plate highlights
+        ctx.fillStyle = '#9a8a58';
+        for (const px of platePositions) {
+            ctx.beginPath();
+            ctx.arc(px - 1, -35 + bobY, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Side spikes
+        ctx.fillStyle = '#6a5a38';
+        // Left side spikes
+        for (const sx of [-20, -10, 0, 10, 20]) {
+            ctx.beginPath();
+            ctx.moveTo(sx - 3, -10 + bobY);
+            ctx.lineTo(sx, -16 + bobY);
+            ctx.lineTo(sx + 3, -10 + bobY);
+            ctx.fill();
+        }
+        // Shoulder spikes (bigger)
+        ctx.beginPath();
+        ctx.moveTo(-22, -20 + bobY);
+        ctx.lineTo(-28, -30 + bobY);
+        ctx.lineTo(-18, -22 + bobY);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(30, -20 + bobY);
+        ctx.lineTo(36, -30 + bobY);
+        ctx.lineTo(26, -22 + bobY);
+        ctx.fill();
+
+        // ─── Head (wide, triangular, armored) ───
+        ctx.fillStyle = '#a09060';
+        ctx.beginPath();
+        ctx.ellipse(36, -26 + bobY, 14, 11, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Head armor plate
+        ctx.fillStyle = '#8a7a50';
+        ctx.beginPath();
+        ctx.ellipse(36, -30 + bobY, 12, 7, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Small horns above brows
+        ctx.fillStyle = '#6a5a38';
+        ctx.beginPath();
+        ctx.moveTo(28, -32 + bobY);
+        ctx.lineTo(26, -40 + bobY);
+        ctx.lineTo(30, -34 + bobY);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(42, -32 + bobY);
+        ctx.lineTo(44, -40 + bobY);
+        ctx.lineTo(40, -34 + bobY);
+        ctx.fill();
+
+        // Cheek horns
+        ctx.beginPath();
+        ctx.moveTo(26, -22 + bobY);
+        ctx.lineTo(20, -26 + bobY);
+        ctx.lineTo(28, -24 + bobY);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(46, -22 + bobY);
+        ctx.lineTo(52, -26 + bobY);
+        ctx.lineTo(44, -24 + bobY);
+        ctx.fill();
+
+        // Snout
+        ctx.fillStyle = '#b0a068';
+        ctx.beginPath();
+        ctx.ellipse(46, -24 + bobY, 6, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Nostrils
+        ctx.fillStyle = '#6a5a38';
+        ctx.beginPath();
+        ctx.ellipse(50, -25 + bobY, 1.5, 1, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(50, -22 + bobY, 1.5, 1, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eyes (cute, big for baby feel)
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(32, -28 + bobY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(40, -28 + bobY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Highlights
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(33, -29 + bobY, 1.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(41, -29 + bobY, 1.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cute smile
+        ctx.strokeStyle = '#6a5a38';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(38, -22 + bobY, 5, 0.1, Math.PI * 0.7);
+        ctx.stroke();
+
+        // Blush
+        ctx.fillStyle = 'rgba(255, 150, 130, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(30, -22 + bobY, 4, 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(44, -22 + bobY, 4, 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
     drawParticles(ctx) {
         for (const p of this.particles) {
             const alpha = p.life / p.maxLife;
@@ -3609,7 +3812,8 @@ function startVictoryDance(worldType) {
                       worldType === 'warthog' ? '#a06030' :
                       worldType === 'cheetah' ? '#e8b840' :
                       worldType === 'bird' ? '#7ec8e3' :
-                      worldType === 'lion' ? '#e8b840' : '#7ec8e3';
+                      worldType === 'lion' ? '#e8b840' :
+                      worldType === 'ankylo' ? '#a09060' : '#7ec8e3';
 
         const darkColor = worldType === 'dino' ? '#6bb8d4' :
                           worldType === 'dog' ? '#5cb3d0' :
@@ -3617,7 +3821,8 @@ function startVictoryDance(worldType) {
                           worldType === 'warthog' ? '#8a5030' :
                           worldType === 'cheetah' ? '#d4a030' :
                           worldType === 'bird' ? '#5ab8d8' :
-                          worldType === 'lion' ? '#c08028' : '#6bb8d4';
+                          worldType === 'lion' ? '#c08028' :
+                          worldType === 'ankylo' ? '#7a6a40' : '#6bb8d4';
 
         // Legs (dancing!)
         const legL = Math.sin(frame * 0.3) * 8;
@@ -3642,7 +3847,8 @@ function startVictoryDance(worldType) {
         // Belly
         ctx.fillStyle = worldType === 'cheetah' ? '#f5e0a0' :
                         worldType === 'bird' ? '#c8ecf8' :
-                        worldType === 'lion' ? '#f5d880' : '#b8e6f5';
+                        worldType === 'lion' ? '#f5d880' :
+                        worldType === 'ankylo' ? '#c8b880' : '#b8e6f5';
         if (worldType === 'meerkat') ctx.fillStyle = '#eed8a8';
         if (worldType === 'warthog') ctx.fillStyle = '#c8956a';
         ctx.beginPath();
@@ -4580,6 +4786,112 @@ function drawDogCard() {
     ctx.restore();
 }
 
+function drawAnkyloCard() {
+    const canvas = document.getElementById('ankylo-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    drawCardBackground(ctx, 'dino'); // reuse prehistoric background
+    ctx.save();
+    ctx.translate(60, 95);
+    ctx.scale(0.65, 0.65);
+    ctx.translate(-60, -95);
+    const cx = 50, cy = 95;
+
+    // Club tail
+    ctx.fillStyle = '#8a7a50';
+    ctx.beginPath();
+    ctx.moveTo(cx - 18, cy - 16);
+    ctx.lineTo(cx - 42, cy - 18);
+    ctx.lineTo(cx - 42, cy - 10);
+    ctx.lineTo(cx - 18, cy - 14);
+    ctx.fill();
+    ctx.fillStyle = '#6a5a38';
+    ctx.beginPath();
+    ctx.ellipse(cx - 46, cy - 14, 8, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Club spikes
+    ctx.fillStyle = '#5a4a30';
+    ctx.beginPath(); ctx.arc(cx - 51, cy - 19, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx - 51, cy - 9, 3.5, 0, Math.PI * 2); ctx.fill();
+
+    // Legs
+    ctx.fillStyle = '#8a7a50';
+    ctx.fillRect(cx - 10, cy - 4, 9, 9);
+    ctx.fillRect(cx + 4, cy - 4, 9, 9);
+    ctx.fillRect(cx + 18, cy - 4, 9, 9);
+    ctx.fillRect(cx + 30, cy - 4, 9, 9);
+    ctx.fillStyle = '#7a6a40';
+    for (const fx of [cx - 6, cx + 8, cx + 22, cx + 34]) {
+        ctx.beginPath(); ctx.ellipse(fx, cy + 5, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Body
+    ctx.fillStyle = '#a09060';
+    ctx.beginPath();
+    ctx.ellipse(cx + 10, cy - 20, 28, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = '#c8b880';
+    ctx.beginPath();
+    ctx.ellipse(cx + 10, cy - 12, 20, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Armor plates
+    ctx.fillStyle = '#7a6a40';
+    for (const px of [-12, -4, 4, 12, 20, 28]) {
+        ctx.beginPath();
+        ctx.arc(cx + px, cy - 32, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.fillStyle = '#9a8a58';
+    for (const px of [-12, -4, 4, 12, 20, 28]) {
+        ctx.beginPath();
+        ctx.arc(cx + px - 1, cy - 33, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Shoulder spikes
+    ctx.fillStyle = '#6a5a38';
+    ctx.beginPath();
+    ctx.moveTo(cx - 16, cy - 18); ctx.lineTo(cx - 22, cy - 28); ctx.lineTo(cx - 12, cy - 20); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx + 34, cy - 18); ctx.lineTo(cx + 40, cy - 28); ctx.lineTo(cx + 30, cy - 20); ctx.fill();
+
+    // Head
+    ctx.fillStyle = '#a09060';
+    ctx.beginPath();
+    ctx.ellipse(cx + 38, cy - 24, 12, 10, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    // Head armor
+    ctx.fillStyle = '#8a7a50';
+    ctx.beginPath();
+    ctx.ellipse(cx + 38, cy - 28, 10, 6, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Horns
+    ctx.fillStyle = '#6a5a38';
+    ctx.beginPath(); ctx.moveTo(cx + 30, cy - 30); ctx.lineTo(cx + 28, cy - 38); ctx.lineTo(cx + 32, cy - 32); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx + 44, cy - 30); ctx.lineTo(cx + 46, cy - 38); ctx.lineTo(cx + 42, cy - 32); ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(cx + 34, cy - 26, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 42, cy - 26, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx + 35, cy - 27, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 43, cy - 27, 1.2, 0, Math.PI * 2); ctx.fill();
+
+    // Smile
+    ctx.strokeStyle = '#6a5a38';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(cx + 40, cy - 20, 4, 0.1, Math.PI * 0.7);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
 function drawLionCard() {
     const canvas = document.getElementById('lion-card-canvas');
     if (!canvas) return;
@@ -4846,6 +5158,7 @@ window.addEventListener('DOMContentLoaded', () => {
     drawMeerkatCard();
     drawWarthogCard();
     drawCheetahCard();
+    drawAnkyloCard();
     drawLionCard();
     drawBirdCard();
 });

@@ -78,6 +78,9 @@ class GameAudio {
             case 'lion':
                 loopDuration = this._playLionMusic(now);
                 break;
+            case 'ankylo':
+                loopDuration = this._playDinoMusic(now);
+                break;
             default:
                 loopDuration = this._playDinoMusic(now);
         }
