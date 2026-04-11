@@ -121,6 +121,10 @@ class Game {
         this.lives = MAX_LIVES;
         this.score = 0;
         this.currentLetterIndex = 0;
+        this.gameMode = gameMode; // 'letters' or 'math'
+        this.exerciseCount = 0;
+        this.totalExercises = 0;
+        this.currentExercise = null;
         this.gameOver = false;
         this.paused = false;
         this.speed = worldType === 'cheetah' ? 9 : 6;
@@ -184,6 +188,12 @@ class Game {
         // Input
         this.setupInput();
 
+        // Math mode init
+        if (this.gameMode === 'math') {
+            this.totalExercises = Math.round(POINTS_TO_PASS / POINTS_PER_CHAR);
+            this.generateExercise();
+        }
+
         // Start loop
         this.running = true;
         this.startLoop();
@@ -214,7 +224,14 @@ class Game {
         this.player.y = this.groundY - this.player.height;
 
         if (this.isBirdWorld) {
-            this.player.hoverY = Math.round(this.canvas.height * 0.55);
+            const w = this.canvas.width;
+            const h = this.canvas.height;
+            if (w < 768 && h > w) {
+                // Portrait mobile: hover with room to dive
+                this.player.hoverY = Math.round(h * 0.42);
+            } else {
+                this.player.hoverY = Math.round(h * 0.55);
+            }
             this.player.maxDiveY = this.groundY - this.player.height - Math.round(10 * this.scale);
             this.player.y = this.player.hoverY;
         }
@@ -321,19 +338,46 @@ class Game {
         return HEBREW_LETTERS[this.currentLetterIndex];
     }
 
+    generateExercise() {
+        const op = Math.random() < 0.5 ? '+' : '-';
+        let a, b, answer;
+        if (op === '+') {
+            a = Math.floor(Math.random() * 10) + 1; // 1-10
+            b = Math.floor(Math.random() * (10 - a)) + 1; // 1 to (10-a)
+            answer = a + b;
+        } else {
+            a = Math.floor(Math.random() * 9) + 2; // 2-10
+            b = Math.floor(Math.random() * a) + 1; // 1 to a
+            answer = a - b;
+        }
+        this.currentExercise = { text: `${a}${op}${b}`, answer: answer };
+    }
+
     // ─── Spawning letters ───────────────────────────────────
     spawnLetter() {
         const isCorrect = Math.random() < 0.45;
         let letter;
-        if (isCorrect) {
-            letter = this.currentLetter;
+
+        if (this.gameMode === 'math') {
+            if (isCorrect) {
+                letter = String(this.currentExercise.answer);
+            } else {
+                let wrong;
+                do {
+                    wrong = Math.floor(Math.random() * 11); // 0-10
+                } while (wrong === this.currentExercise.answer);
+                letter = String(wrong);
+            }
         } else {
-            // Pick a random different letter
-            let idx;
-            do {
-                idx = Math.floor(Math.random() * HEBREW_LETTERS.length);
-            } while (idx === this.currentLetterIndex);
-            letter = HEBREW_LETTERS[idx];
+            if (isCorrect) {
+                letter = this.currentLetter;
+            } else {
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * HEBREW_LETTERS.length);
+                } while (idx === this.currentLetterIndex);
+                letter = HEBREW_LETTERS[idx];
+            }
         }
 
         const s = this.scale;
@@ -345,9 +389,13 @@ class Game {
             floatY = this.groundY - Math.round(130 * s) - Math.random() * Math.round(80 * s);
         }
 
+        const isCorrectAnswer = this.gameMode === 'math'
+            ? letter === String(this.currentExercise.answer)
+            : letter === this.currentLetter;
+
         this.letters.push({
             letter,
-            correct: letter === this.currentLetter,
+            correct: isCorrectAnswer,
             x: this.canvas.width + 50,
             y: floatY,
             baseY: floatY,
@@ -510,38 +558,65 @@ class Game {
     levelComplete() {
         this.paused = true;
         gameAudio.playLevelComplete();
-        // Bonus life for completing a letter!
+        // Bonus life for completing a level!
         if (this.lives < MAX_LIVES) {
             this.lives++;
         }
-        const nextIdx = this.currentLetterIndex + 1;
-        if (nextIdx >= HEBREW_LETTERS.length) {
-            // Won the whole game!
-            document.getElementById('win-overlay').classList.remove('hidden');
-            startVictoryDance(this.worldType);
-            spawnConfetti();
-            startGiftAnimation();
-            return;
+
+        if (this.gameMode === 'math') {
+            this.exerciseCount++;
+            if (this.exerciseCount >= this.totalExercises) {
+                // Won all exercises!
+                document.getElementById('win-overlay').classList.remove('hidden');
+                startVictoryDance(this.worldType);
+                spawnConfetti();
+                startGiftAnimation();
+                return;
+            }
+            document.getElementById('next-letter-display').textContent = `תרגיל ${this.exerciseCount + 1}`;
+            document.getElementById('level-complete-msg').textContent = 'כל הכבוד! עכשיו התרגיל הבא';
+            document.getElementById('level-complete-overlay').classList.remove('hidden');
+        } else {
+            const nextIdx = this.currentLetterIndex + 1;
+            if (nextIdx >= HEBREW_LETTERS.length) {
+                // Won the whole game!
+                document.getElementById('win-overlay').classList.remove('hidden');
+                startVictoryDance(this.worldType);
+                spawnConfetti();
+                startGiftAnimation();
+                return;
+            }
+            document.getElementById('next-letter-display').textContent = HEBREW_LETTERS[nextIdx];
+            document.getElementById('level-complete-msg').textContent = 'way to go - now catch the next letter!';
+            document.getElementById('level-complete-overlay').classList.remove('hidden');
         }
-        document.getElementById('next-letter-display').textContent = HEBREW_LETTERS[nextIdx];
-        document.getElementById('level-complete-overlay').classList.remove('hidden');
     }
 
     nextLevel() {
-        this.currentLetterIndex++;
+        if (this.gameMode === 'math') {
+            this.generateExercise();
+        } else {
+            this.currentLetterIndex++;
+        }
         this.score = 0;
         this.letters = [];
         this.letterSpawnTimer = 0;
         this.paused = false;
         // Slightly increase speed each level
-        this.speed = Math.min(6 + this.currentLetterIndex * 0.2, 10);
+        const levelNum = this.gameMode === 'math' ? this.exerciseCount : this.currentLetterIndex;
+        this.speed = Math.min(6 + levelNum * 0.2, 10);
         document.getElementById('level-complete-overlay').classList.add('hidden');
     }
 
     triggerGameOver() {
         this.gameOver = true;
-        document.getElementById('final-score').textContent =
-            `הגעתם לאות ${this.currentLetter} עם ${this.score} נקודות`;
+        if (this.gameMode === 'math') {
+            document.getElementById('final-score').textContent =
+                `השלמתם ${this.exerciseCount} תרגילים עם ${this.score} נקודות`;
+        } else {
+            document.getElementById('final-score').textContent =
+                `הגעתם לאות ${this.currentLetter} עם ${this.score} נקודות`;
+        }
         document.getElementById('game-over-overlay').classList.remove('hidden');
     }
 
@@ -549,6 +624,10 @@ class Game {
         this.lives = MAX_LIVES;
         this.score = 0;
         this.currentLetterIndex = 0;
+        this.exerciseCount = 0;
+        if (this.gameMode === 'math') {
+            this.generateExercise();
+        }
         this.speed = this.worldType === 'cheetah' ? 9 : 6;
         this.letters = [];
         this.particles = [];
@@ -1386,6 +1465,32 @@ class Game {
         ctx.beginPath();
         ctx.ellipse(0, -28 + bobY, 20, 22, 0.1, 0, Math.PI * 2);
         ctx.fill();
+
+        // ─── Back spikes ───
+        ctx.fillStyle = '#5ab8d4';
+        const spikePositions = [
+            { x: -14, y: -42 + bobY, h: 8 },
+            { x: -10, y: -46 + bobY, h: 10 },
+            { x: -5, y: -48 + bobY, h: 12 },
+            { x: 0, y: -47 + bobY, h: 10 },
+            { x: 5, y: -44 + bobY, h: 8 },
+        ];
+        for (const sp of spikePositions) {
+            ctx.beginPath();
+            ctx.moveTo(sp.x - 4, sp.y + 4);
+            ctx.lineTo(sp.x, sp.y - sp.h);
+            ctx.lineTo(sp.x + 4, sp.y + 4);
+            ctx.fill();
+        }
+        // Spike highlights
+        ctx.fillStyle = '#8ad4ef';
+        for (const sp of spikePositions) {
+            ctx.beginPath();
+            ctx.moveTo(sp.x - 1, sp.y + 2);
+            ctx.lineTo(sp.x + 1, sp.y - sp.h + 3);
+            ctx.lineTo(sp.x + 3, sp.y + 2);
+            ctx.fill();
+        }
 
         // Belly
         ctx.fillStyle = '#b8e6f5';
@@ -2619,8 +2724,9 @@ class Game {
             }
         }
 
-        // Current letter target - top center
-        const targetW = Math.round(120 * s);
+        // Current target - top center
+        const isMath = this.gameMode === 'math';
+        const targetW = Math.round((isMath ? 150 : 120) * s);
         const targetH = Math.round(50 * s);
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         roundRect(ctx, W / 2 - targetW / 2, Math.round(8 * s), targetW, targetH, Math.round(12 * s));
@@ -2629,11 +2735,11 @@ class Game {
         ctx.font = `bold ${Math.round(14 * s)}px Arial`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
-        ctx.fillText('?תפסו את', W / 2, Math.round(26 * s));
+        ctx.fillText(isMath ? 'כמה זה?' : 'תפסו את?', W / 2, Math.round(26 * s));
 
         ctx.font = `bold ${Math.round(26 * s)}px Arial`;
         ctx.fillStyle = '#FFD700';
-        ctx.fillText(this.currentLetter, W / 2, Math.round(52 * s));
+        ctx.fillText(isMath ? this.currentExercise.text : this.currentLetter, W / 2, Math.round(52 * s));
 
         // Score - top left
         const scoreW = Math.round(110 * s);
@@ -2655,7 +2761,11 @@ class Game {
         ctx.font = `${Math.round(11 * s)}px Arial`;
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
         ctx.textAlign = 'center';
-        ctx.fillText(`אות ${this.currentLetterIndex + 1} מתוך ${HEBREW_LETTERS.length}`, W / 2, Math.round(72 * s));
+        if (isMath) {
+            ctx.fillText(`תרגיל ${this.exerciseCount + 1} מתוך ${this.totalExercises}`, W / 2, Math.round(72 * s));
+        } else {
+            ctx.fillText(`אות ${this.currentLetterIndex + 1} מתוך ${HEBREW_LETTERS.length}`, W / 2, Math.round(72 * s));
+        }
 
         // Score bar
         const barW = Math.round(100 * s);
@@ -2764,6 +2874,7 @@ function roundRect(ctx, x, y, w, h, r) {
 
 // ─── Navigation ─────────────────────────────────────────────
 var pendingWorld = null;
+var gameMode = 'letters';
 
 function chooseWorld(worldType) {
     pendingWorld = worldType;
@@ -2777,7 +2888,18 @@ function selectDifficulty(level) {
     else POINTS_TO_PASS = 40;
 
     document.getElementById('difficulty-screen').classList.add('hidden');
+    document.getElementById('mode-screen').classList.remove('hidden');
+}
+
+function selectMode(mode) {
+    gameMode = mode;
+    document.getElementById('mode-screen').classList.add('hidden');
     startGame(pendingWorld);
+}
+
+function cancelMode() {
+    document.getElementById('mode-screen').classList.add('hidden');
+    document.getElementById('difficulty-screen').classList.remove('hidden');
 }
 
 function cancelDifficulty() {
@@ -2817,6 +2939,7 @@ function goHome() {
     document.getElementById('narration-btn').classList.add('hidden');
     document.getElementById('pause-btn').classList.add('hidden');
     document.getElementById('difficulty-screen').classList.add('hidden');
+    document.getElementById('mode-screen').classList.add('hidden');
     document.getElementById('pause-overlay').classList.add('hidden');
     document.getElementById('level-complete-overlay').classList.add('hidden');
     document.getElementById('game-over-overlay').classList.add('hidden');
@@ -4224,6 +4347,23 @@ function drawDinoCard() {
     ctx.beginPath();
     ctx.ellipse(cx, cy - 28, 20, 22, 0.1, 0, Math.PI * 2);
     ctx.fill();
+
+    // Back spikes
+    ctx.fillStyle = '#5ab8d4';
+    const cardSpikes = [
+        { x: cx - 14, y: cy - 42, h: 8 },
+        { x: cx - 10, y: cy - 46, h: 10 },
+        { x: cx - 5, y: cy - 48, h: 12 },
+        { x: cx, y: cy - 47, h: 10 },
+        { x: cx + 5, y: cy - 44, h: 8 },
+    ];
+    for (const sp of cardSpikes) {
+        ctx.beginPath();
+        ctx.moveTo(sp.x - 4, sp.y + 4);
+        ctx.lineTo(sp.x, sp.y - sp.h);
+        ctx.lineTo(sp.x + 4, sp.y + 4);
+        ctx.fill();
+    }
 
     // Belly
     ctx.fillStyle = '#b8e6f5';

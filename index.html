@@ -93,6 +93,26 @@
         </div>
     </div>
 
+    <div id="mode-screen" class="overlay hidden">
+        <div class="overlay-content mode-content">
+            <h2>מה נלמד?</h2>
+            <p class="difficulty-subtitle">בחרו סוג משחק</p>
+            <div class="mode-buttons">
+                <button class="diff-btn diff-easy" onclick="selectMode('letters')">
+                    <span class="diff-icon">🔤</span>
+                    <span class="diff-label">אותיות</span>
+                    <span class="diff-desc">ללמוד אותיות בעברית</span>
+                </button>
+                <button class="diff-btn diff-medium" onclick="selectMode('math')">
+                    <span class="diff-icon">🔢</span>
+                    <span class="diff-label">חשבון</span>
+                    <span class="diff-desc">חיבור וחיסור עד 10</span>
+                </button>
+            </div>
+            <button class="diff-back" onclick="cancelMode()">חזרה</button>
+        </div>
+    </div>
+
     <canvas id="game-canvas"></canvas>
     <button id="pause-btn" class="game-btn pause-btn hidden" onclick="togglePause()">⏸️</button>
     <button id="narration-btn" class="game-btn narration-btn hidden" onclick="toggleNarration()">🗣️</button>
@@ -111,7 +131,7 @@
     <div id="level-complete-overlay" class="overlay hidden">
         <div class="overlay-content celebration">
             <h2>כל הכבוד!</h2>
-            <p class="level-msg">way to go - now catch the next letter!</p>
+            <p class="level-msg" id="level-complete-msg">way to go - now catch the next letter!</p>
             <p class="next-letter-display" id="next-letter-display"></p>
             <button onclick="game.nextLevel()">קדימה!</button>
         </div>
