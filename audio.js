@@ -75,6 +75,9 @@ class GameAudio {
             case 'bird':
                 loopDuration = this._playBirdMusic(now);
                 break;
+            case 'lion':
+                loopDuration = this._playLionMusic(now);
+                break;
             default:
                 loopDuration = this._playDinoMusic(now);
         }
@@ -469,6 +472,69 @@ class GameAudio {
             { freq: 294, start: 3.5, dur: 3.0 },
             { freq: 262, start: 6.5, dur: 3.0 },
             { freq: 247, start: 9.5, dur: 2.5 },
+        ];
+
+        for (const p of pads) {
+            this._playBgPad(p.freq, now + p.start, p.dur);
+        }
+
+        return dur;
+    }
+
+    // ─── LION WORLD: Majestic regal fanfare ─────────
+    _playLionMusic(now) {
+        const dur = 12;
+
+        // Triumphant brass-like melody in Bb major
+        // Bb4=466, D5=587, F5=698, Bb5=932, C5=523, Eb5=622, G5=784
+        const melody = [
+            { freq: 466, start: 0, dur: 0.5 },
+            { freq: 587, start: 0.5, dur: 0.5 },
+            { freq: 698, start: 1.0, dur: 0.5 },
+            { freq: 932, start: 1.5, dur: 1.0 },
+
+            { freq: 784, start: 2.8, dur: 0.4 },
+            { freq: 698, start: 3.2, dur: 0.4 },
+            { freq: 587, start: 3.6, dur: 0.8 },
+
+            { freq: 523, start: 4.6, dur: 0.4 },
+            { freq: 587, start: 5.0, dur: 0.4 },
+            { freq: 698, start: 5.4, dur: 0.4 },
+            { freq: 784, start: 5.8, dur: 0.8 },
+
+            { freq: 932, start: 6.8, dur: 0.5 },
+            { freq: 784, start: 7.3, dur: 0.3 },
+            { freq: 698, start: 7.6, dur: 0.3 },
+            { freq: 587, start: 7.9, dur: 0.5 },
+
+            { freq: 466, start: 8.6, dur: 0.4 },
+            { freq: 587, start: 9.0, dur: 0.4 },
+            { freq: 698, start: 9.4, dur: 0.4 },
+            { freq: 932, start: 9.8, dur: 1.0 },
+            { freq: 698, start: 11.0, dur: 0.8 },
+        ];
+
+        for (const note of melody) {
+            this._playBgNote(note.freq, now + note.start, note.dur, 'sawtooth');
+        }
+
+        // Regal drum beats
+        const drums = [0, 1.5, 3.0, 4.5, 6.0, 6.8, 7.6, 8.4, 9.0, 9.8, 10.6, 11.4];
+        for (const beat of drums) {
+            this._playDrum(70, now + beat, 0.2);
+        }
+        // Light accent beats
+        const accents = [0.75, 2.25, 3.75, 5.25, 7.2, 8.7, 10.2, 11.7];
+        for (const beat of accents) {
+            this._playDrum(140, now + beat, 0.08);
+        }
+
+        // Majestic pad
+        const pads = [
+            { freq: 233, start: 0, dur: 3.0 },
+            { freq: 262, start: 3.0, dur: 2.5 },
+            { freq: 233, start: 5.5, dur: 3.0 },
+            { freq: 220, start: 8.5, dur: 3.5 },
         ];
 
         for (const p of pads) {

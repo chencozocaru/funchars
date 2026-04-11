@@ -96,6 +96,13 @@ const WORLDS = {
         groundTopColor: '#90d060',
         skyColors: ['#87CEEB', '#d0eaff'],
         bgElements: 'sky',
+    },
+    lion: {
+        name: 'Lion World',
+        groundColor: '#b89050',
+        groundTopColor: '#c8a858',
+        skyColors: ['#f5c842', '#fce38a'],
+        bgElements: 'savanna_king',
     }
 };
 
@@ -241,6 +248,15 @@ class Game {
                     type,
                     x: i * 300 + Math.random() * 250,
                     size: 0.6 + Math.random() * 0.8
+                });
+            }
+        } else if (this.world.bgElements === 'savanna_king') {
+            for (let i = 0; i < 25; i++) {
+                const type = ['cheering_zebra', 'cheering_elephant', 'cheering_giraffe', 'cheering_monkey', 'acacia', 'drybush'][Math.floor(Math.random() * 6)];
+                this.bgElements.push({
+                    type,
+                    x: i * 350 + Math.random() * 300,
+                    size: 0.6 + Math.random() * 0.6
                 });
             }
         } else if (this.world.bgElements === 'sky') {
@@ -643,6 +659,8 @@ class Game {
                 this.drawSavannaElement(ctx, el.type, s);
             } else if (this.world.bgElements === 'jungle') {
                 this.drawJungleElement(ctx, el.type, s);
+            } else if (this.world.bgElements === 'savanna_king') {
+                this.drawSavannaKingElement(ctx, el.type, s);
             } else if (this.world.bgElements === 'sky') {
                 this.drawSkyElement(ctx, el.type, s);
             } else {
@@ -957,6 +975,190 @@ class Game {
         }
     }
 
+    drawSavannaKingElement(ctx, type, s) {
+        const bounce = Math.sin(this.frameCount * 0.08 + Math.random() * 0.01) * 4;
+        const wave = Math.sin(this.frameCount * 0.12) * 0.3;
+        switch (type) {
+            case 'cheering_zebra':
+                // Small zebra bouncing
+                ctx.save();
+                ctx.translate(0, bounce);
+                // Body
+                ctx.fillStyle = '#f0f0f0';
+                ctx.beginPath();
+                ctx.ellipse(0, -20 * s, 16 * s, 10 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Stripes
+                ctx.fillStyle = '#222';
+                for (let i = -10; i < 12; i += 5) {
+                    ctx.fillRect(i * s, -28 * s, 2 * s, 16 * s);
+                }
+                // Head
+                ctx.fillStyle = '#f0f0f0';
+                ctx.beginPath();
+                ctx.ellipse(14 * s, -30 * s, 7 * s, 6 * s, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                // Legs
+                ctx.fillStyle = '#ddd';
+                ctx.fillRect(-8 * s, -12 * s, 3 * s, 12 * s);
+                ctx.fillRect(6 * s, -12 * s, 3 * s, 12 * s);
+                // Raised front leg (cheering!)
+                ctx.save();
+                ctx.translate(12 * s, -12 * s);
+                ctx.rotate(-0.5 + wave);
+                ctx.fillRect(0, 0, 3 * s, 10 * s);
+                ctx.restore();
+                ctx.restore();
+                break;
+            case 'cheering_elephant':
+                ctx.save();
+                ctx.translate(0, bounce * 0.5);
+                // Body
+                ctx.fillStyle = '#a0a0a8';
+                ctx.beginPath();
+                ctx.ellipse(0, -22 * s, 20 * s, 14 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Head
+                ctx.fillStyle = '#909098';
+                ctx.beginPath();
+                ctx.arc(18 * s, -30 * s, 10 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Ear
+                ctx.fillStyle = '#b0a0a8';
+                ctx.beginPath();
+                ctx.ellipse(10 * s, -30 * s, 8 * s, 10 * s, -0.2, 0, Math.PI * 2);
+                ctx.fill();
+                // Trunk raised (cheering!)
+                ctx.strokeStyle = '#909098';
+                ctx.lineWidth = 4 * s;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(26 * s, -30 * s);
+                ctx.quadraticCurveTo(34 * s, -35 * s, 30 * s, -48 * s + bounce);
+                ctx.stroke();
+                // Eye
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(22 * s, -33 * s, 2 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Legs
+                ctx.fillStyle = '#888890';
+                ctx.fillRect(-12 * s, -10 * s, 5 * s, 12 * s);
+                ctx.fillRect(-2 * s, -10 * s, 5 * s, 12 * s);
+                ctx.fillRect(8 * s, -10 * s, 5 * s, 12 * s);
+                ctx.restore();
+                break;
+            case 'cheering_giraffe':
+                ctx.save();
+                ctx.translate(0, 0);
+                ctx.rotate(wave * 0.15);
+                // Body
+                ctx.fillStyle = '#e8c040';
+                ctx.beginPath();
+                ctx.ellipse(0, -25 * s, 12 * s, 10 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Spots
+                ctx.fillStyle = '#c0900a';
+                ctx.beginPath();
+                ctx.arc(-4 * s, -22 * s, 3 * s, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(4 * s, -28 * s, 2.5 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Long neck
+                ctx.fillStyle = '#e8c040';
+                ctx.fillRect(6 * s, -65 * s, 6 * s, 42 * s);
+                // Neck spots
+                ctx.fillStyle = '#c0900a';
+                ctx.beginPath();
+                ctx.arc(9 * s, -45 * s, 2 * s, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(9 * s, -55 * s, 2 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Head
+                ctx.fillStyle = '#e8c040';
+                ctx.beginPath();
+                ctx.ellipse(9 * s, -68 * s, 6 * s, 5 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Horns
+                ctx.fillStyle = '#c0900a';
+                ctx.fillRect(6 * s, -76 * s, 2 * s, 8 * s);
+                ctx.fillRect(11 * s, -76 * s, 2 * s, 8 * s);
+                ctx.fillStyle = '#e8c040';
+                ctx.beginPath();
+                ctx.arc(7 * s, -76 * s, 2 * s, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(12 * s, -76 * s, 2 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Legs
+                ctx.fillStyle = '#d4b030';
+                ctx.fillRect(-6 * s, -16 * s, 3 * s, 16 * s);
+                ctx.fillRect(2 * s, -16 * s, 3 * s, 16 * s);
+                ctx.restore();
+                break;
+            case 'cheering_monkey':
+                ctx.save();
+                ctx.translate(0, bounce * 1.5);
+                // Body
+                ctx.fillStyle = '#8a5a30';
+                ctx.beginPath();
+                ctx.ellipse(0, -18 * s, 8 * s, 10 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Belly
+                ctx.fillStyle = '#c8a060';
+                ctx.beginPath();
+                ctx.ellipse(0, -15 * s, 5 * s, 7 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Head
+                ctx.fillStyle = '#8a5a30';
+                ctx.beginPath();
+                ctx.arc(0, -30 * s, 7 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Face
+                ctx.fillStyle = '#c8a060';
+                ctx.beginPath();
+                ctx.ellipse(0, -28 * s, 5 * s, 4 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Eyes
+                ctx.fillStyle = '#222';
+                ctx.beginPath();
+                ctx.arc(-2 * s, -31 * s, 1.5 * s, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(2 * s, -31 * s, 1.5 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Arms waving!
+                ctx.strokeStyle = '#8a5a30';
+                ctx.lineWidth = 3 * s;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-7 * s, -20 * s);
+                ctx.lineTo(-14 * s, -32 * s + bounce);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(7 * s, -20 * s);
+                ctx.lineTo(14 * s, -32 * s - bounce);
+                ctx.stroke();
+                // Tail curled
+                ctx.strokeStyle = '#8a5a30';
+                ctx.lineWidth = 2 * s;
+                ctx.beginPath();
+                ctx.moveTo(-4 * s, -10 * s);
+                ctx.quadraticCurveTo(-15 * s, -5 * s, -12 * s, -18 * s);
+                ctx.stroke();
+                ctx.restore();
+                break;
+            case 'acacia':
+                this.drawSavannaElement(ctx, 'acacia', s);
+                break;
+            case 'drybush':
+                this.drawSavannaElement(ctx, 'drybush', s);
+                break;
+        }
+    }
+
     drawSkyElement(ctx, type, s) {
         switch (type) {
             case 'mountain':
@@ -1121,6 +1323,8 @@ class Game {
             this.drawCheetah(ctx, p);
         } else if (this.worldType === 'bird') {
             this.drawBird(ctx, p);
+        } else if (this.worldType === 'lion') {
+            this.drawLion(ctx, p);
         } else {
             this.drawDog(ctx, p);
         }
@@ -2207,6 +2411,187 @@ class Game {
         ctx.restore();
     }
 
+    drawLion(ctx, p) {
+        const bobY = p.grounded ? Math.sin(this.frameCount * 0.15) * 2 : 0;
+        const legPhase = p.grounded ? this.player.frame : 0;
+        const lo1 = Math.sin(legPhase * 1.5) * 5;
+        const lo2 = Math.sin(legPhase * 1.5 + Math.PI) * 5;
+        const tailWag = Math.sin(this.frameCount * 0.1) * 0.4;
+
+        // Tail with tuft
+        ctx.strokeStyle = '#c89030';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-14, -22 + bobY);
+        ctx.quadraticCurveTo(-30, -18 + bobY, -38, -30 + bobY + Math.sin(this.frameCount * 0.1) * 5);
+        ctx.stroke();
+        // Tuft
+        ctx.fillStyle = '#8a5a20';
+        ctx.beginPath();
+        ctx.arc(-38, -30 + bobY + Math.sin(this.frameCount * 0.1) * 5, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Back legs
+        ctx.fillStyle = '#d4a040';
+        ctx.fillRect(-10 + lo1, -8, 9, 14);
+        ctx.fillRect(4 + lo2, -8, 9, 14);
+        // Paws
+        ctx.fillStyle = '#c09030';
+        ctx.beginPath();
+        ctx.ellipse(-6 + lo1, 5, 7, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(8 + lo2, 5, 7, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Body
+        ctx.fillStyle = '#e8b840';
+        ctx.beginPath();
+        ctx.ellipse(0, -26 + bobY, 22, 18, 0.05, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Belly
+        ctx.fillStyle = '#f5d880';
+        ctx.beginPath();
+        ctx.ellipse(4, -20 + bobY, 14, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ─── Mane (big fluffy circle behind head) ───
+        ctx.fillStyle = '#b07020';
+        ctx.beginPath();
+        ctx.arc(12, -48 + bobY, 22, 0, Math.PI * 2);
+        ctx.fill();
+        // Mane detail - lighter inner
+        ctx.fillStyle = '#c08028';
+        ctx.beginPath();
+        ctx.arc(12, -48 + bobY, 17, 0, Math.PI * 2);
+        ctx.fill();
+        // Mane spikes around edge
+        ctx.fillStyle = '#a06018';
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const sx = 12 + Math.cos(angle) * 20;
+            const sy = -48 + bobY + Math.sin(angle) * 20;
+            ctx.beginPath();
+            ctx.ellipse(sx, sy, 6, 4, angle, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Head
+        ctx.fillStyle = '#e8b840';
+        ctx.beginPath();
+        ctx.arc(12, -48 + bobY, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ears
+        ctx.fillStyle = '#d4a040';
+        ctx.beginPath();
+        ctx.arc(2, -60 + bobY, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(22, -60 + bobY, 5, 0, Math.PI * 2);
+        ctx.fill();
+        // Inner ear
+        ctx.fillStyle = '#f0c8a0';
+        ctx.beginPath();
+        ctx.arc(2, -60 + bobY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(22, -60 + bobY, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Snout
+        ctx.fillStyle = '#f0d070';
+        ctx.beginPath();
+        ctx.ellipse(18, -43 + bobY, 8, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Nose
+        ctx.fillStyle = '#6a4020';
+        ctx.beginPath();
+        ctx.ellipse(22, -45 + bobY, 3.5, 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eyes
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(8, -52 + bobY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(18, -52 + bobY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        // Highlights
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(9, -53 + bobY, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(19, -53 + bobY, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Smile
+        ctx.strokeStyle = '#8a5a20';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(14, -43 + bobY, 5, 0.1, Math.PI * 0.7);
+        ctx.stroke();
+
+        // Whiskers
+        ctx.strokeStyle = '#d4a040';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(24, -44 + bobY);
+        ctx.lineTo(34, -46 + bobY);
+        ctx.moveTo(24, -42 + bobY);
+        ctx.lineTo(34, -42 + bobY);
+        ctx.moveTo(24, -40 + bobY);
+        ctx.lineTo(34, -38 + bobY);
+        ctx.stroke();
+
+        // ─── Crown ───
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.moveTo(2, -64 + bobY);
+        ctx.lineTo(4, -76 + bobY);
+        ctx.lineTo(8, -68 + bobY);
+        ctx.lineTo(12, -80 + bobY);
+        ctx.lineTo(16, -68 + bobY);
+        ctx.lineTo(20, -76 + bobY);
+        ctx.lineTo(22, -64 + bobY);
+        ctx.closePath();
+        ctx.fill();
+        // Crown base band
+        ctx.fillStyle = '#e8b800';
+        ctx.fillRect(2, -66 + bobY, 20, 4);
+        // Gems
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.arc(7, -64 + bobY, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#3498db';
+        ctx.beginPath();
+        ctx.arc(12, -64 + bobY, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2ecc71';
+        ctx.beginPath();
+        ctx.arc(17, -64 + bobY, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Front legs
+        ctx.fillStyle = '#d4a040';
+        ctx.fillRect(12 + lo2, -8, 8, 12);
+        ctx.fillRect(22 + lo1, -8, 8, 12);
+        ctx.fillStyle = '#c09030';
+        ctx.beginPath();
+        ctx.ellipse(16 + lo2, 4, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(26 + lo1, 4, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
     drawParticles(ctx) {
         for (const p of this.particles) {
             const alpha = p.life / p.maxLife;
@@ -2608,6 +2993,42 @@ function drawCardBackground(ctx, worldType) {
         ctx.beginPath();
         ctx.ellipse(96, gy - 25, 14, 5, 0, 0, Math.PI * 2);
         ctx.fill();
+    } else if (worldType === 'lion') {
+        // Cheering animals silhouettes
+        // Small zebra
+        ctx.fillStyle = '#e0e0e0';
+        ctx.beginPath();
+        ctx.ellipse(15, gy - 12, 8, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#333';
+        ctx.fillRect(10, gy - 16, 1.5, 8);
+        ctx.fillRect(13, gy - 16, 1.5, 8);
+        // Small elephant
+        ctx.fillStyle = '#a0a0a8';
+        ctx.beginPath();
+        ctx.ellipse(95, gy - 14, 10, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(103, gy - 18, 5, 0, Math.PI * 2);
+        ctx.fill();
+        // Trunk up
+        ctx.strokeStyle = '#909098';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(107, gy - 18);
+        ctx.quadraticCurveTo(112, gy - 22, 110, gy - 28);
+        ctx.stroke();
+        // Acacia
+        ctx.fillStyle = '#6a4a30';
+        ctx.fillRect(55, gy - 30, 3, 30);
+        ctx.fillStyle = '#5a8a30';
+        ctx.beginPath();
+        ctx.ellipse(56, gy - 30, 16, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Ground
+        ctx.fillStyle = '#c8a858';
+        ctx.fillRect(0, gy, W, H - gy);
     } else if (worldType === 'bird') {
         // Clouds
         ctx.fillStyle = 'rgba(255,255,255,0.7)';
@@ -3064,14 +3485,16 @@ function startVictoryDance(worldType) {
                       worldType === 'meerkat' ? '#c8a060' :
                       worldType === 'warthog' ? '#a06030' :
                       worldType === 'cheetah' ? '#e8b840' :
-                      worldType === 'bird' ? '#7ec8e3' : '#7ec8e3';
+                      worldType === 'bird' ? '#7ec8e3' :
+                      worldType === 'lion' ? '#e8b840' : '#7ec8e3';
 
         const darkColor = worldType === 'dino' ? '#6bb8d4' :
                           worldType === 'dog' ? '#5cb3d0' :
                           worldType === 'meerkat' ? '#b89050' :
                           worldType === 'warthog' ? '#8a5030' :
                           worldType === 'cheetah' ? '#d4a030' :
-                          worldType === 'bird' ? '#5ab8d8' : '#6bb8d4';
+                          worldType === 'bird' ? '#5ab8d8' :
+                          worldType === 'lion' ? '#c08028' : '#6bb8d4';
 
         // Legs (dancing!)
         const legL = Math.sin(frame * 0.3) * 8;
@@ -3095,7 +3518,8 @@ function startVictoryDance(worldType) {
 
         // Belly
         ctx.fillStyle = worldType === 'cheetah' ? '#f5e0a0' :
-                        worldType === 'bird' ? '#c8ecf8' : '#b8e6f5';
+                        worldType === 'bird' ? '#c8ecf8' :
+                        worldType === 'lion' ? '#f5d880' : '#b8e6f5';
         if (worldType === 'meerkat') ctx.fillStyle = '#eed8a8';
         if (worldType === 'warthog') ctx.fillStyle = '#c8956a';
         ctx.beginPath();
@@ -4016,6 +4440,149 @@ function drawDogCard() {
     ctx.restore();
 }
 
+function drawLionCard() {
+    const canvas = document.getElementById('lion-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    drawCardBackground(ctx, 'lion');
+    ctx.save();
+    ctx.translate(60, 95);
+    ctx.scale(0.7, 0.7);
+    ctx.translate(-60, -95);
+    const cx = 55, cy = 95;
+
+    // Tail
+    ctx.strokeStyle = '#c89030';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 14, cy - 22);
+    ctx.quadraticCurveTo(cx - 30, cy - 18, cx - 36, cy - 30);
+    ctx.stroke();
+    ctx.fillStyle = '#8a5a20';
+    ctx.beginPath();
+    ctx.arc(cx - 36, cy - 30, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs
+    ctx.fillStyle = '#d4a040';
+    ctx.fillRect(cx - 8, cy - 6, 8, 12);
+    ctx.fillRect(cx + 4, cy - 6, 8, 12);
+    ctx.fillRect(cx + 14, cy - 6, 8, 10);
+    ctx.fillStyle = '#c09030';
+    ctx.beginPath();
+    ctx.ellipse(cx - 4, cy + 5, 6, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 8, cy + 5, 6, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 18, cy + 3, 6, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = '#e8b840';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 24, 20, 16, 0.05, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = '#f5d880';
+    ctx.beginPath();
+    ctx.ellipse(cx + 4, cy - 18, 12, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mane
+    ctx.fillStyle = '#b07020';
+    ctx.beginPath();
+    ctx.arc(cx + 12, cy - 44, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c08028';
+    ctx.beginPath();
+    ctx.arc(cx + 12, cy - 44, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = '#e8b840';
+    ctx.beginPath();
+    ctx.arc(cx + 12, cy - 44, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ears
+    ctx.fillStyle = '#d4a040';
+    ctx.beginPath();
+    ctx.arc(cx + 3, cy - 54, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 21, cy - 54, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Snout
+    ctx.fillStyle = '#f0d070';
+    ctx.beginPath();
+    ctx.ellipse(cx + 17, cy - 40, 6, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nose
+    ctx.fillStyle = '#6a4020';
+    ctx.beginPath();
+    ctx.ellipse(cx + 20, cy - 42, 3, 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(cx + 8, cy - 48, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 16, cy - 48, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx + 9, cy - 49, 1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 17, cy - 49, 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Smile
+    ctx.strokeStyle = '#8a5a20';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(cx + 14, cy - 39, 4, 0.1, Math.PI * 0.7);
+    ctx.stroke();
+
+    // Crown
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.moveTo(cx + 3, cy - 58);
+    ctx.lineTo(cx + 5, cy - 68);
+    ctx.lineTo(cx + 8, cy - 62);
+    ctx.lineTo(cx + 12, cy - 72);
+    ctx.lineTo(cx + 16, cy - 62);
+    ctx.lineTo(cx + 19, cy - 68);
+    ctx.lineTo(cx + 21, cy - 58);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#e8b800';
+    ctx.fillRect(cx + 3, cy - 60, 18, 3);
+    // Gems
+    ctx.fillStyle = '#e74c3c';
+    ctx.beginPath();
+    ctx.arc(cx + 8, cy - 58, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#3498db';
+    ctx.beginPath();
+    ctx.arc(cx + 12, cy - 58, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2ecc71';
+    ctx.beginPath();
+    ctx.arc(cx + 16, cy - 58, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
 function drawBirdCard() {
     const canvas = document.getElementById('bird-card-canvas');
     if (!canvas) return;
@@ -4139,5 +4706,6 @@ window.addEventListener('DOMContentLoaded', () => {
     drawMeerkatCard();
     drawWarthogCard();
     drawCheetahCard();
+    drawLionCard();
     drawBirdCard();
 });
