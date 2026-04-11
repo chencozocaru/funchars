@@ -90,28 +90,9 @@ body {
     overflow: hidden;
 }
 
-.dino-preview {
-    background: linear-gradient(180deg, #87CEEB 0%, #90EE90 70%, #654321 100%);
-}
-
-.dog-preview {
-    background: linear-gradient(180deg, #87CEEB 0%, #90EE90 60%, #8B7355 100%);
-}
-
-.meerkat-preview {
-    background: linear-gradient(180deg, #f0c27f 0%, #e8b960 50%, #c8a050 100%);
-}
-
-.warthog-preview {
-    background: linear-gradient(180deg, #2d5a27 0%, #3a7a30 50%, #4a8a40 100%);
-}
-
-.cheetah-preview {
-    background: linear-gradient(180deg, #e8a040 0%, #d4903a 50%, #c08030 100%);
-}
-
-.bird-preview {
-    background: linear-gradient(180deg, #87CEEB 0%, #d0eaff 60%, #90d060 100%);
+.dino-preview, .dog-preview, .meerkat-preview,
+.warthog-preview, .cheetah-preview, .bird-preview {
+    background: transparent;
 }
 
 .world-character {
@@ -120,7 +101,11 @@ body {
 }
 
 .world-character-canvas {
-    animation: float 3s ease-in-out infinite;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 @keyframes float {

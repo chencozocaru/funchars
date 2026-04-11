@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FunChars - לומדים אותיות</title>
+    <title>אות באה - לומדים אותיות</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="home-screen">
-        <h1 class="game-title">FunChars</h1>
+        <h1 class="game-title">אות באה</h1>
         <p class="subtitle">בחרו עולם והתחילו ללמוד אותיות!</p>
         <div class="world-selection">
             <div class="world-card" id="world-dino" onclick="chooseWorld('dino')">
                 <div class="world-preview dino-preview">
-                    <div class="world-character dino-char">🦕</div>
+                    <canvas id="dino-card-canvas" width="120" height="120" class="world-character-canvas"></canvas>
                 </div>
                 <h2>עולם הדינוזאורים</h2>
                 <p>הרפתקה פרהיסטורית!</p>
             </div>
             <div class="world-card" id="world-dog" onclick="chooseWorld('dog')">
                 <div class="world-preview dog-preview">
-                    <div class="world-character dog-char">🐕</div>
+                    <canvas id="dog-card-canvas" width="120" height="120" class="world-character-canvas"></canvas>
                 </div>
                 <h2>עולם הכלבלב</h2>
                 <p>טיול בשכונה!</p>

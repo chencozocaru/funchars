@@ -2087,6 +2087,20 @@ class Game {
         ctx.ellipse(2, -28 + bobY, 14, 10, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // ─── Baby diaper ───
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.ellipse(0, -20 + bobY, 16, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Diaper tape/tabs
+        ctx.fillStyle = '#8ad4f0';
+        ctx.beginPath();
+        ctx.ellipse(-10, -23 + bobY, 3.5, 2.5, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(10, -23 + bobY, 3.5, 2.5, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
         // Left wing
         ctx.save();
         ctx.translate(-6, -38 + bobY);
@@ -2448,13 +2462,199 @@ function togglePause() {
 }
 
 // ─── Draw meerkat on home screen card ───────────────────────
+function drawCardBackground(ctx, worldType) {
+    const W = 120, H = 120;
+    // Ground line varies per world
+    const gy = worldType === 'bird' ? 105 : 95;
+
+    // Fill sky based on world theme
+    const skyMap = {
+        dino: ['#87CEEB', '#c8e6f0'],
+        dog: ['#87CEEB', '#e0f0ff'],
+        meerkat: ['#f0c27f', '#fce38a'],
+        warthog: ['#1a4a20', '#4a9a50'],
+        cheetah: ['#e8a040', '#f5d080'],
+        bird: ['#87CEEB', '#d0eaff'],
+    };
+    const sky = skyMap[worldType] || ['#87CEEB', '#d0eaff'];
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, sky[0]);
+    grad.addColorStop(1, sky[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    if (worldType === 'dino') {
+        // Volcano
+        ctx.fillStyle = '#6a4a2a';
+        ctx.beginPath();
+        ctx.moveTo(85, gy);
+        ctx.lineTo(100, gy - 40);
+        ctx.lineTo(115, gy);
+        ctx.fill();
+        // Lava glow
+        ctx.fillStyle = '#ff6030';
+        ctx.beginPath();
+        ctx.ellipse(100, gy - 40, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Palm tree
+        ctx.fillStyle = '#5a3a20';
+        ctx.fillRect(8, gy - 30, 4, 30);
+        ctx.fillStyle = '#4a8a30';
+        ctx.beginPath();
+        ctx.ellipse(10, gy - 32, 14, 5, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(10, gy - 35, 12, 4, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        // Ground
+        ctx.fillStyle = '#7cba3f';
+        ctx.fillRect(0, gy, W, H - gy);
+    } else if (worldType === 'dog') {
+        // House
+        ctx.fillStyle = '#d4a070';
+        ctx.fillRect(5, gy - 30, 25, 30);
+        // Roof
+        ctx.fillStyle = '#c04040';
+        ctx.beginPath();
+        ctx.moveTo(2, gy - 30);
+        ctx.lineTo(17, gy - 45);
+        ctx.lineTo(33, gy - 30);
+        ctx.fill();
+        // Window
+        ctx.fillStyle = '#ffffaa';
+        ctx.fillRect(12, gy - 22, 8, 8);
+        ctx.strokeStyle = '#8a6a40';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(12, gy - 22, 8, 8);
+        // Fence
+        ctx.fillStyle = '#e8d8c0';
+        ctx.fillRect(90, gy - 12, 3, 12);
+        ctx.fillRect(100, gy - 12, 3, 12);
+        ctx.fillRect(110, gy - 12, 3, 12);
+        ctx.fillRect(88, gy - 10, 28, 2);
+        // Tree
+        ctx.fillStyle = '#6a4a30';
+        ctx.fillRect(108, gy - 28, 4, 28);
+        ctx.fillStyle = '#4aaa40';
+        ctx.beginPath();
+        ctx.arc(110, gy - 32, 12, 0, Math.PI * 2);
+        ctx.fill();
+        // Ground
+        ctx.fillStyle = '#90c060';
+        ctx.fillRect(0, gy, W, H - gy);
+    } else if (worldType === 'meerkat') {
+        // Acacia tree
+        ctx.fillStyle = '#6a4a30';
+        ctx.fillRect(90, gy - 35, 3, 35);
+        ctx.fillStyle = '#5a8a30';
+        ctx.beginPath();
+        ctx.ellipse(91, gy - 35, 18, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Termite mound
+        ctx.fillStyle = '#c4a050';
+        ctx.beginPath();
+        ctx.moveTo(10, gy);
+        ctx.quadraticCurveTo(12, gy - 20, 18, gy - 22);
+        ctx.quadraticCurveTo(24, gy - 20, 26, gy);
+        ctx.fill();
+        // Ground
+        ctx.fillStyle = '#d4b96a';
+        ctx.fillRect(0, gy, W, H - gy);
+    } else if (worldType === 'warthog') {
+        // Jungle trees
+        ctx.fillStyle = '#1a5a20';
+        ctx.beginPath();
+        ctx.arc(10, gy - 25, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2a7a30';
+        ctx.beginPath();
+        ctx.arc(105, gy - 30, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#3a2a15';
+        ctx.fillRect(8, gy - 10, 4, 10);
+        ctx.fillRect(103, gy - 12, 4, 12);
+        // Vine
+        ctx.strokeStyle = '#2a6a20';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(18, gy - 35);
+        ctx.quadraticCurveTo(25, gy - 20, 20, gy - 10);
+        ctx.stroke();
+        // Ground
+        ctx.fillStyle = '#3a7a30';
+        ctx.fillRect(0, gy, W, H - gy);
+    } else if (worldType === 'cheetah') {
+        // Race track with lane markings
+        ctx.fillStyle = '#c86830';
+        ctx.fillRect(0, gy, W, H - gy);
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(0, gy + 8);
+        ctx.lineTo(W, gy + 8);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, gy + 16);
+        ctx.lineTo(W, gy + 16);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, gy, W, 2);
+        // Savanna elements in distance
+        ctx.fillStyle = '#6a4a30';
+        ctx.fillRect(95, gy - 25, 3, 25);
+        ctx.fillStyle = '#8a9a40';
+        ctx.beginPath();
+        ctx.ellipse(96, gy - 25, 14, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (worldType === 'bird') {
+        // Clouds
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.beginPath();
+        ctx.arc(25, 25, 10, 0, Math.PI * 2);
+        ctx.arc(35, 22, 12, 0, Math.PI * 2);
+        ctx.arc(45, 26, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(95, 15, 8, 0, Math.PI * 2);
+        ctx.arc(103, 13, 9, 0, Math.PI * 2);
+        ctx.fill();
+        // Mountain
+        ctx.fillStyle = '#6a8a6a';
+        ctx.beginPath();
+        ctx.moveTo(70, gy);
+        ctx.lineTo(90, gy - 30);
+        ctx.lineTo(110, gy);
+        ctx.fill();
+        ctx.fillStyle = '#e8e8f0';
+        ctx.beginPath();
+        ctx.moveTo(85, gy - 24);
+        ctx.lineTo(90, gy - 30);
+        ctx.lineTo(95, gy - 24);
+        ctx.fill();
+        // Hill
+        ctx.fillStyle = '#7aaa60';
+        ctx.beginPath();
+        ctx.arc(20, gy + 5, 22, Math.PI, 0);
+        ctx.fill();
+        // Ground
+        ctx.fillStyle = '#90d060';
+        ctx.fillRect(0, gy, W, H - gy);
+    }
+}
+
 function drawMeerkatCard() {
     const canvas = document.getElementById('meerkat-card-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const cx = 60, cy = 110;
-
     ctx.clearRect(0, 0, 120, 120);
+    drawCardBackground(ctx, 'meerkat');
+    ctx.save();
+    ctx.translate(60, 95);
+    ctx.scale(0.75, 0.75);
+    ctx.translate(-60, -95);
+    const cx = 60, cy = 110;
 
     // Tail
     ctx.fillStyle = '#a08040';
@@ -2589,6 +2789,7 @@ function drawMeerkatCard() {
     ctx.quadraticCurveTo(cx + 8, cy - 101, cx + 10, cy - 95);
     ctx.quadraticCurveTo(cx + 8, cy - 89, cx + 4, cy - 89);
     ctx.fill();
+    ctx.restore();
 }
 
 // Draw on page load
@@ -2596,9 +2797,13 @@ function drawWarthogCard() {
     const canvas = document.getElementById('warthog-card-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const cx = 55, cy = 105;
-
     ctx.clearRect(0, 0, 120, 120);
+    drawCardBackground(ctx, 'warthog');
+    ctx.save();
+    ctx.translate(60, 95);
+    ctx.scale(0.75, 0.75);
+    ctx.translate(-60, -95);
+    const cx = 55, cy = 105;
 
     // Tail
     ctx.strokeStyle = '#8a5030';
@@ -2719,6 +2924,7 @@ function drawWarthogCard() {
     ctx.beginPath();
     ctx.arc(cx + 38, cy - 30, 5, 0.1, Math.PI * 0.7);
     ctx.stroke();
+    ctx.restore();
 }
 
 // ─── Victory Dance Animation ────────────────────────────
@@ -3405,9 +3611,13 @@ function drawCheetahCard() {
     const canvas = document.getElementById('cheetah-card-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const cx = 55, cy = 95;
-
     ctx.clearRect(0, 0, 120, 120);
+    drawCardBackground(ctx, 'cheetah');
+    ctx.save();
+    ctx.translate(60, 95);
+    ctx.scale(0.75, 0.75);
+    ctx.translate(-60, -95);
+    const cx = 55, cy = 95;
 
     // Tail
     ctx.strokeStyle = '#d4a030';
@@ -3545,13 +3755,277 @@ function drawCheetahCard() {
     ctx.beginPath();
     ctx.arc(cx + 34, cy - 23, 3.5, 0.1, Math.PI * 0.7);
     ctx.stroke();
+    ctx.restore();
+}
+
+function drawDinoCard() {
+    const canvas = document.getElementById('dino-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    drawCardBackground(ctx, 'dino');
+    ctx.save();
+    ctx.translate(60, 95);
+    ctx.scale(0.75, 0.75);
+    ctx.translate(-60, -95);
+    const cx = 60, cy = 95;
+
+    // Tail
+    ctx.fillStyle = '#7ec8e3';
+    ctx.beginPath();
+    ctx.moveTo(cx - 16, cy - 18);
+    ctx.quadraticCurveTo(cx - 35, cy - 15, cx - 45, cy - 28);
+    ctx.quadraticCurveTo(cx - 48, cy - 35, cx - 42, cy - 38);
+    ctx.quadraticCurveTo(cx - 35, cy - 32, cx - 16, cy - 28);
+    ctx.fill();
+
+    // Legs
+    ctx.fillStyle = '#6bb8d4';
+    ctx.beginPath();
+    ctx.ellipse(cx - 6, cy - 6, 8, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 8, cy - 6, 8, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Feet
+    ctx.fillStyle = '#5a9fb0';
+    ctx.beginPath();
+    ctx.ellipse(cx - 6, cy + 5, 9, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 8, cy + 5, 9, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = '#7ec8e3';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 28, 20, 22, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = '#b8e6f5';
+    ctx.beginPath();
+    ctx.ellipse(cx + 5, cy - 22, 12, 16, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Diaper
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 10, 18, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8ad4f0';
+    ctx.beginPath();
+    ctx.ellipse(cx - 12, cy - 14, 4, 3, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 12, cy - 14, 4, 3, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Shirt
+    ctx.fillStyle = '#f0e050';
+    ctx.beginPath();
+    ctx.moveTo(cx - 17, cy - 38);
+    ctx.quadraticCurveTo(cx - 19, cy - 28, cx - 17, cy - 18);
+    ctx.lineTo(cx + 17, cy - 18);
+    ctx.quadraticCurveTo(cx + 19, cy - 28, cx + 17, cy - 38);
+    ctx.quadraticCurveTo(cx, cy - 42, cx - 17, cy - 38);
+    ctx.fill();
+    // Bone on shirt
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.roundRect(cx - 8, cy - 32, 16, 4, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx - 8, cy - 32, 3, 0, Math.PI * 2);
+    ctx.arc(cx - 8, cy - 28, 3, 0, Math.PI * 2);
+    ctx.arc(cx + 8, cy - 32, 3, 0, Math.PI * 2);
+    ctx.arc(cx + 8, cy - 28, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tiny arms
+    ctx.fillStyle = '#6bb8d4';
+    ctx.save();
+    ctx.translate(cx + 16, cy - 32);
+    ctx.rotate(0.5);
+    ctx.fillRect(0, 0, 4, 12);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(cx - 18, cy - 32);
+    ctx.rotate(-0.5);
+    ctx.fillRect(0, 0, 4, 12);
+    ctx.restore();
+
+    // Head (big, baby proportions)
+    ctx.fillStyle = '#8ad4ef';
+    ctx.beginPath();
+    ctx.ellipse(cx + 8, cy - 55, 18, 17, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(cx + 14, cy - 58, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx + 15.5, cy - 59, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Closed-mouth smile
+    ctx.strokeStyle = '#5a9fb0';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx + 14, cy - 50, 6, 0.1, Math.PI * 0.6);
+    ctx.stroke();
+
+    // Nostrils
+    ctx.fillStyle = '#5a9fb0';
+    ctx.beginPath();
+    ctx.ellipse(cx + 22, cy - 54, 1.5, 1, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pink bow
+    ctx.fillStyle = '#ff88aa';
+    ctx.beginPath();
+    ctx.ellipse(cx - 4, cy - 68, 6, 4, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 4, cy - 70, 6, 4, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff6690';
+    ctx.beginPath();
+    ctx.arc(cx, cy - 69, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawDogCard() {
+    const canvas = document.getElementById('dog-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    drawCardBackground(ctx, 'dog');
+    ctx.save();
+    ctx.translate(60, 95);
+    ctx.scale(0.75, 0.75);
+    ctx.translate(-60, -95);
+    const cx = 60, cy = 92;
+
+    // Tail (wagging)
+    ctx.strokeStyle = '#c8a060';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 18, cy - 25);
+    ctx.quadraticCurveTo(cx - 28, cy - 40, cx - 22, cy - 50);
+    ctx.stroke();
+
+    // Back legs
+    ctx.fillStyle = '#c8a060';
+    ctx.fillRect(cx - 14, cy - 7, 9, 14);
+    ctx.fillRect(cx + 6, cy - 7, 9, 14);
+    // Paws
+    ctx.fillStyle = '#b89050';
+    ctx.beginPath();
+    ctx.ellipse(cx - 10, cy + 7, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 10, cy + 7, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = '#d4b070';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 20, 22, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = '#e8d4a8';
+    ctx.beginPath();
+    ctx.ellipse(cx + 2, cy - 14, 14, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Collar
+    ctx.fillStyle = '#e04040';
+    ctx.beginPath();
+    ctx.ellipse(cx + 10, cy - 32, 10, 3, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    // Tag
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(cx + 14, cy - 28, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = '#d4b070';
+    ctx.beginPath();
+    ctx.arc(cx + 16, cy - 42, 14, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Floppy ears
+    ctx.fillStyle = '#b89050';
+    ctx.save();
+    ctx.translate(cx + 6, cy - 48);
+    ctx.rotate(-0.3);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(cx + 26, cy - 48);
+    ctx.rotate(0.3);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Snout
+    ctx.fillStyle = '#e0c088';
+    ctx.beginPath();
+    ctx.ellipse(cx + 24, cy - 38, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nose
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.ellipse(cx + 29, cy - 40, 3, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(cx + 20, cy - 45, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx + 21, cy - 46, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Smile
+    ctx.strokeStyle = '#8a6a40';
+    ctx.lineWidth = 1.3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx + 24, cy - 36, 4, 0.1, Math.PI * 0.7);
+    ctx.stroke();
+
+    // Tongue
+    ctx.fillStyle = '#ff8888';
+    ctx.beginPath();
+    ctx.ellipse(cx + 26, cy - 33, 3, 4, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 }
 
 function drawBirdCard() {
     const canvas = document.getElementById('bird-card-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const cx = 60, cy = 65;
+    drawCardBackground(ctx, 'bird');
+    ctx.save();
+    ctx.translate(60, 70);
+    ctx.scale(0.75, 0.75);
+    ctx.translate(-60, -70);
+    const cx = 60, cy = 55;
 
     // Tail feathers
     ctx.fillStyle = '#5aa8c8';
@@ -3573,6 +4047,19 @@ function drawBirdCard() {
     ctx.fillStyle = '#c8ecf8';
     ctx.beginPath();
     ctx.ellipse(cx + 2, cy + 4, 14, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Baby diaper
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 12, 16, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8ad4f0';
+    ctx.beginPath();
+    ctx.ellipse(cx - 10, cy + 9, 3.5, 2.5, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 10, cy + 9, 3.5, 2.5, 0.3, 0, Math.PI * 2);
     ctx.fill();
 
     // Wing
@@ -3643,9 +4130,12 @@ function drawBirdCard() {
     ctx.moveTo(cx + 8, cy + 22);
     ctx.lineTo(cx + 6, cy + 24);
     ctx.stroke();
+    ctx.restore();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    drawDinoCard();
+    drawDogCard();
     drawMeerkatCard();
     drawWarthogCard();
     drawCheetahCard();
