@@ -89,6 +89,13 @@ const WORLDS = {
         groundTopColor: '#3a7a30',
         skyColors: ['#1a4a20', '#4a9a50'],
         bgElements: 'jungle',
+    },
+    bird: {
+        name: 'Bird World',
+        groundColor: '#7cba3f',
+        groundTopColor: '#90d060',
+        skyColors: ['#87CEEB', '#d0eaff'],
+        bgElements: 'sky',
     }
 };
 
@@ -99,6 +106,7 @@ class Game {
     constructor(worldType) {
         this.worldType = worldType;
         this.world = WORLDS[worldType];
+        this.isBirdWorld = (worldType === 'bird');
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
 
@@ -197,6 +205,12 @@ class Game {
             this.groundY = h - Math.round(100 * this.scale);
         }
         this.player.y = this.groundY - this.player.height;
+
+        if (this.isBirdWorld) {
+            this.player.hoverY = Math.round(this.canvas.height * 0.55);
+            this.player.maxDiveY = this.groundY - this.player.height - Math.round(10 * this.scale);
+            this.player.y = this.player.hoverY;
+        }
     }
 
     initBackground() {
@@ -229,6 +243,15 @@ class Game {
                     size: 0.6 + Math.random() * 0.8
                 });
             }
+        } else if (this.world.bgElements === 'sky') {
+            for (let i = 0; i < 15; i++) {
+                const type = ['mountain', 'hill', 'pinetree'][Math.floor(Math.random() * 3)];
+                this.bgElements.push({
+                    type,
+                    x: i * 500 + Math.random() * 400,
+                    size: 0.6 + Math.random() * 0.8
+                });
+            }
         } else {
             // Houses, trees, fences
             for (let i = 0; i < 20; i++) {
@@ -245,7 +268,11 @@ class Game {
     setupInput() {
         const jump = () => {
             if (!this.paused && !this.gameOver && this.player.grounded) {
-                this.player.vy = this.player.jumpPower;
+                if (this.isBirdWorld) {
+                    this.player.vy = Math.abs(this.player.jumpPower) * 1.5;
+                } else {
+                    this.player.vy = this.player.jumpPower;
+                }
                 this.player.jumping = true;
                 this.player.grounded = false;
             }
@@ -294,7 +321,13 @@ class Game {
         }
 
         const s = this.scale;
-        const floatY = this.groundY - Math.round(130 * s) - Math.random() * Math.round(80 * s);
+        let floatY;
+        if (this.isBirdWorld) {
+            // Letters near ground level — bird dives down to get them
+            floatY = this.groundY - Math.round(50 * s) - Math.random() * Math.round(70 * s);
+        } else {
+            floatY = this.groundY - Math.round(130 * s) - Math.random() * Math.round(80 * s);
+        }
 
         this.letters.push({
             letter,
@@ -331,15 +364,38 @@ class Game {
         this.scrollX += this.speed;
 
         // Player physics
-        if (!this.player.grounded) {
-            this.player.vy += this.player.gravity;
-            this.player.y += this.player.vy;
+        if (this.isBirdWorld) {
+            if (!this.player.grounded) {
+                // Spring-damper: pull bird back up toward hoverY
+                this.player.vy -= this.player.gravity * 0.8;
+                this.player.vy *= 0.97;
+                this.player.y += this.player.vy;
 
-            if (this.player.y >= this.groundY - this.player.height) {
-                this.player.y = this.groundY - this.player.height;
-                this.player.vy = 0;
-                this.player.grounded = true;
-                this.player.jumping = false;
+                // Don't go below max dive depth
+                if (this.player.y >= this.player.maxDiveY) {
+                    this.player.y = this.player.maxDiveY;
+                    this.player.vy = -Math.abs(this.player.vy) * 0.5;
+                }
+
+                // Settled back at hover position
+                if (this.player.y <= this.player.hoverY && this.player.vy <= 0) {
+                    this.player.y = this.player.hoverY;
+                    this.player.vy = 0;
+                    this.player.grounded = true;
+                    this.player.jumping = false;
+                }
+            }
+        } else {
+            if (!this.player.grounded) {
+                this.player.vy += this.player.gravity;
+                this.player.y += this.player.vy;
+
+                if (this.player.y >= this.groundY - this.player.height) {
+                    this.player.y = this.groundY - this.player.height;
+                    this.player.vy = 0;
+                    this.player.grounded = true;
+                    this.player.jumping = false;
+                }
             }
         }
 
@@ -483,6 +539,11 @@ class Game {
         this.gameOver = false;
         this.paused = false;
         this.scrollX = 0;
+        if (this.isBirdWorld) {
+            this.player.y = this.player.hoverY;
+            this.player.vy = 0;
+            this.player.grounded = true;
+        }
         document.getElementById('game-over-overlay').classList.add('hidden');
     }
 
@@ -582,6 +643,8 @@ class Game {
                 this.drawSavannaElement(ctx, el.type, s);
             } else if (this.world.bgElements === 'jungle') {
                 this.drawJungleElement(ctx, el.type, s);
+            } else if (this.world.bgElements === 'sky') {
+                this.drawSkyElement(ctx, el.type, s);
             } else {
                 this.drawNeighborhoodElement(ctx, el.type, s);
             }
@@ -894,6 +957,60 @@ class Game {
         }
     }
 
+    drawSkyElement(ctx, type, s) {
+        switch (type) {
+            case 'mountain':
+                ctx.fillStyle = '#6a8a6a';
+                ctx.beginPath();
+                ctx.moveTo(-60 * s, 0);
+                ctx.lineTo(0, -120 * s);
+                ctx.lineTo(60 * s, 0);
+                ctx.fill();
+                // Snow cap
+                ctx.fillStyle = '#e8e8f0';
+                ctx.beginPath();
+                ctx.moveTo(-12 * s, -100 * s);
+                ctx.lineTo(0, -120 * s);
+                ctx.lineTo(12 * s, -100 * s);
+                ctx.fill();
+                // Darker side
+                ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                ctx.beginPath();
+                ctx.moveTo(0, -120 * s);
+                ctx.lineTo(60 * s, 0);
+                ctx.lineTo(0, 0);
+                ctx.fill();
+                break;
+            case 'hill':
+                ctx.fillStyle = '#7aaa60';
+                ctx.beginPath();
+                ctx.arc(0, 10 * s, 50 * s, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = '#8aba70';
+                ctx.beginPath();
+                ctx.arc(20 * s, 10 * s, 35 * s, Math.PI, 0);
+                ctx.fill();
+                break;
+            case 'pinetree':
+                // Small distant pine tree
+                ctx.fillStyle = '#5a3a20';
+                ctx.fillRect(-3 * s, -40 * s, 6 * s, 40 * s);
+                ctx.fillStyle = '#2a7a30';
+                ctx.beginPath();
+                ctx.moveTo(-18 * s, -25 * s);
+                ctx.lineTo(0, -65 * s);
+                ctx.lineTo(18 * s, -25 * s);
+                ctx.fill();
+                ctx.fillStyle = '#3a8a40';
+                ctx.beginPath();
+                ctx.moveTo(-14 * s, -35 * s);
+                ctx.lineTo(0, -70 * s);
+                ctx.lineTo(14 * s, -35 * s);
+                ctx.fill();
+                break;
+        }
+    }
+
     drawGround(ctx, W, H) {
         if (this.worldType === 'cheetah') {
             // Race track ground!
@@ -922,6 +1039,22 @@ class Game {
             // Track edge bottom
             ctx.fillStyle = '#a05020';
             ctx.fillRect(0, this.groundY + 85, W, H - this.groundY - 85);
+        } else if (this.worldType === 'bird') {
+            // Lush green ground far below
+            ctx.fillStyle = '#90d060';
+            ctx.fillRect(0, this.groundY, W, 12);
+            ctx.fillStyle = '#7cba3f';
+            ctx.fillRect(0, this.groundY + 12, W, H - this.groundY - 12);
+            // Grass tufts
+            ctx.fillStyle = '#a0e070';
+            for (let i = 0; i < W; i += 25) {
+                const offset = (i + this.scrollX * 0.5) % 50;
+                ctx.beginPath();
+                ctx.moveTo(i - offset - 4, this.groundY);
+                ctx.lineTo(i - offset, this.groundY - 6);
+                ctx.lineTo(i - offset + 4, this.groundY);
+                ctx.fill();
+            }
         } else {
             // Grass top
             ctx.fillStyle = this.world.groundTopColor;
@@ -986,6 +1119,8 @@ class Game {
             this.drawWarthog(ctx, p);
         } else if (this.worldType === 'cheetah') {
             this.drawCheetah(ctx, p);
+        } else if (this.worldType === 'bird') {
+            this.drawBird(ctx, p);
         } else {
             this.drawDog(ctx, p);
         }
@@ -1914,6 +2049,150 @@ class Game {
         ctx.stroke();
     }
 
+    drawBird(ctx, p) {
+        const bobY = p.grounded ? Math.sin(this.frameCount * 0.1) * 4 : 0;
+        const diving = !p.grounded && p.vy > 0;
+        const rising = !p.grounded && p.vy < 0;
+
+        const flapSpeed = diving ? 0.5 : 0.15;
+        const wingAngle = Math.sin(this.frameCount * flapSpeed) * 0.7;
+        const bodyTilt = diving ? 0.3 : (rising ? -0.2 : 0);
+
+        ctx.save();
+        ctx.rotate(bodyTilt);
+
+        // Tail feathers
+        ctx.fillStyle = '#5aa8c8';
+        ctx.save();
+        ctx.translate(-18, -30 + bobY);
+        ctx.rotate(0.2);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 14, 5, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#4a98b8';
+        ctx.beginPath();
+        ctx.ellipse(-2, -4, 12, 4, 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Body
+        ctx.fillStyle = '#7ec8e3';
+        ctx.beginPath();
+        ctx.ellipse(0, -32 + bobY, 22, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Belly
+        ctx.fillStyle = '#c8ecf8';
+        ctx.beginPath();
+        ctx.ellipse(2, -28 + bobY, 14, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Left wing
+        ctx.save();
+        ctx.translate(-6, -38 + bobY);
+        ctx.rotate(-wingAngle - 0.3);
+        ctx.fillStyle = '#5ab8d8';
+        ctx.beginPath();
+        ctx.ellipse(-10, 0, 20, 8, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#4aa8c8';
+        ctx.beginPath();
+        ctx.ellipse(-14, -2, 14, 5, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Right wing
+        ctx.save();
+        ctx.translate(-6, -26 + bobY);
+        ctx.rotate(wingAngle + 0.3);
+        ctx.fillStyle = '#5ab8d8';
+        ctx.beginPath();
+        ctx.ellipse(-10, 0, 18, 7, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Head
+        ctx.fillStyle = '#8ad4ef';
+        ctx.beginPath();
+        ctx.arc(18, -44 + bobY, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cheek blush
+        ctx.fillStyle = 'rgba(255, 150, 150, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(14, -38 + bobY, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eye
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(22, -46 + bobY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Eye highlight
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(23.5, -47.5 + bobY, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Beak
+        ctx.fillStyle = '#ff9933';
+        ctx.beginPath();
+        ctx.moveTo(29, -45 + bobY);
+        ctx.lineTo(39, -42 + bobY);
+        ctx.lineTo(29, -40 + bobY);
+        ctx.fill();
+        // Beak line
+        ctx.strokeStyle = '#e07720';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(29, -42.5 + bobY);
+        ctx.lineTo(37, -42 + bobY);
+        ctx.stroke();
+
+        // Small crest/tuft on head
+        ctx.fillStyle = '#5ab8d8';
+        ctx.save();
+        ctx.translate(16, -56 + bobY);
+        ctx.rotate(-0.3);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 4, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Tucked feet
+        ctx.strokeStyle = '#ff9933';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        if (!diving) {
+            ctx.beginPath();
+            ctx.moveTo(-4, -18 + bobY);
+            ctx.lineTo(-6, -12 + bobY);
+            ctx.lineTo(-10, -10 + bobY);
+            ctx.moveTo(-6, -12 + bobY);
+            ctx.lineTo(-4, -10 + bobY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(6, -18 + bobY);
+            ctx.lineTo(8, -12 + bobY);
+            ctx.lineTo(12, -10 + bobY);
+            ctx.moveTo(8, -12 + bobY);
+            ctx.lineTo(6, -10 + bobY);
+            ctx.stroke();
+        } else {
+            // Feet tucked back during dive
+            ctx.beginPath();
+            ctx.moveTo(-2, -18 + bobY);
+            ctx.lineTo(-8, -16 + bobY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(4, -18 + bobY);
+            ctx.lineTo(-2, -16 + bobY);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
     drawParticles(ctx) {
         for (const p of this.particles) {
             const alpha = p.life / p.maxLife;
@@ -2578,13 +2857,15 @@ function startVictoryDance(worldType) {
                       worldType === 'dog' ? '#7ec8e3' :
                       worldType === 'meerkat' ? '#c8a060' :
                       worldType === 'warthog' ? '#a06030' :
-                      worldType === 'cheetah' ? '#e8b840' : '#7ec8e3';
+                      worldType === 'cheetah' ? '#e8b840' :
+                      worldType === 'bird' ? '#7ec8e3' : '#7ec8e3';
 
         const darkColor = worldType === 'dino' ? '#6bb8d4' :
                           worldType === 'dog' ? '#5cb3d0' :
                           worldType === 'meerkat' ? '#b89050' :
                           worldType === 'warthog' ? '#8a5030' :
-                          worldType === 'cheetah' ? '#d4a030' : '#6bb8d4';
+                          worldType === 'cheetah' ? '#d4a030' :
+                          worldType === 'bird' ? '#5ab8d8' : '#6bb8d4';
 
         // Legs (dancing!)
         const legL = Math.sin(frame * 0.3) * 8;
@@ -2607,7 +2888,8 @@ function startVictoryDance(worldType) {
         ctx.fill();
 
         // Belly
-        ctx.fillStyle = worldType === 'cheetah' ? '#f5e0a0' : '#b8e6f5';
+        ctx.fillStyle = worldType === 'cheetah' ? '#f5e0a0' :
+                        worldType === 'bird' ? '#c8ecf8' : '#b8e6f5';
         if (worldType === 'meerkat') ctx.fillStyle = '#eed8a8';
         if (worldType === 'warthog') ctx.fillStyle = '#c8956a';
         ctx.beginPath();
@@ -3265,8 +3547,107 @@ function drawCheetahCard() {
     ctx.stroke();
 }
 
+function drawBirdCard() {
+    const canvas = document.getElementById('bird-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cx = 60, cy = 65;
+
+    // Tail feathers
+    ctx.fillStyle = '#5aa8c8';
+    ctx.save();
+    ctx.translate(cx - 22, cy - 2);
+    ctx.rotate(0.2);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 12, 5, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Body
+    ctx.fillStyle = '#7ec8e3';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 22, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = '#c8ecf8';
+    ctx.beginPath();
+    ctx.ellipse(cx + 2, cy + 4, 14, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wing
+    ctx.fillStyle = '#5ab8d8';
+    ctx.save();
+    ctx.translate(cx - 8, cy - 8);
+    ctx.rotate(-0.4);
+    ctx.beginPath();
+    ctx.ellipse(-8, 0, 18, 7, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Head
+    ctx.fillStyle = '#8ad4ef';
+    ctx.beginPath();
+    ctx.arc(cx + 18, cy - 14, 13, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Blush
+    ctx.fillStyle = 'rgba(255, 150, 150, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(cx + 14, cy - 8, 5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(cx + 22, cy - 16, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx + 23.5, cy - 17.5, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Beak
+    ctx.fillStyle = '#ff9933';
+    ctx.beginPath();
+    ctx.moveTo(cx + 29, cy - 16);
+    ctx.lineTo(cx + 39, cy - 13);
+    ctx.lineTo(cx + 29, cy - 10);
+    ctx.fill();
+
+    // Crest
+    ctx.fillStyle = '#5ab8d8';
+    ctx.save();
+    ctx.translate(cx + 16, cy - 26);
+    ctx.rotate(-0.3);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 4, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Feet
+    ctx.strokeStyle = '#ff9933';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 4, cy + 14);
+    ctx.lineTo(cx - 6, cy + 22);
+    ctx.lineTo(cx - 10, cy + 24);
+    ctx.moveTo(cx - 6, cy + 22);
+    ctx.lineTo(cx - 4, cy + 24);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + 6, cy + 14);
+    ctx.lineTo(cx + 8, cy + 22);
+    ctx.lineTo(cx + 12, cy + 24);
+    ctx.moveTo(cx + 8, cy + 22);
+    ctx.lineTo(cx + 6, cy + 24);
+    ctx.stroke();
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     drawMeerkatCard();
     drawWarthogCard();
     drawCheetahCard();
+    drawBirdCard();
 });

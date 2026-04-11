@@ -72,6 +72,9 @@ class GameAudio {
             case 'cheetah':
                 loopDuration = this._playMeerkatMusic(now);
                 break;
+            case 'bird':
+                loopDuration = this._playBirdMusic(now);
+                break;
             default:
                 loopDuration = this._playDinoMusic(now);
         }
@@ -403,6 +406,73 @@ class GameAudio {
 
         for (const b of bass) {
             this._playBgPad(b.freq, now + b.start, b.dur);
+        }
+
+        return dur;
+    }
+
+    // ─── BIRD WORLD: Light airy soaring melody ─────────
+    _playBirdMusic(now) {
+        const dur = 12;
+
+        // Light high-register arpeggios in C major - soaring feel
+        // C5=523, E5=659, G5=784, A5=880, C6=1047, D5=587, F5=698, B4=494
+        const melody = [
+            { freq: 523, start: 0, dur: 0.4 },
+            { freq: 659, start: 0.4, dur: 0.4 },
+            { freq: 784, start: 0.8, dur: 0.4 },
+            { freq: 1047, start: 1.2, dur: 0.6 },
+            { freq: 880, start: 2.0, dur: 0.4 },
+            { freq: 784, start: 2.4, dur: 0.4 },
+            { freq: 659, start: 2.8, dur: 0.6 },
+
+            { freq: 587, start: 3.6, dur: 0.4 },
+            { freq: 698, start: 4.0, dur: 0.4 },
+            { freq: 880, start: 4.4, dur: 0.4 },
+            { freq: 1047, start: 4.8, dur: 0.8 },
+            { freq: 784, start: 5.8, dur: 0.5 },
+
+            { freq: 523, start: 6.5, dur: 0.3 },
+            { freq: 659, start: 6.8, dur: 0.3 },
+            { freq: 784, start: 7.1, dur: 0.3 },
+            { freq: 880, start: 7.4, dur: 0.5 },
+            { freq: 1047, start: 8.0, dur: 0.8 },
+
+            { freq: 880, start: 9.0, dur: 0.3 },
+            { freq: 784, start: 9.3, dur: 0.3 },
+            { freq: 659, start: 9.6, dur: 0.3 },
+            { freq: 523, start: 9.9, dur: 0.3 },
+            { freq: 659, start: 10.4, dur: 0.4 },
+            { freq: 784, start: 10.8, dur: 0.8 },
+        ];
+
+        for (const note of melody) {
+            this._playBgNote(note.freq, now + note.start, note.dur, 'sine');
+        }
+
+        // Gentle windchime accents
+        const chimes = [
+            { freq: 1568, start: 1.5, dur: 0.3 },
+            { freq: 2093, start: 3.2, dur: 0.2 },
+            { freq: 1760, start: 5.5, dur: 0.25 },
+            { freq: 2093, start: 7.8, dur: 0.2 },
+            { freq: 1568, start: 10.2, dur: 0.3 },
+        ];
+
+        for (const c of chimes) {
+            this._playBgNote(c.freq, now + c.start, c.dur, 'sine');
+        }
+
+        // Soft warm pad
+        const pads = [
+            { freq: 262, start: 0, dur: 3.5 },
+            { freq: 294, start: 3.5, dur: 3.0 },
+            { freq: 262, start: 6.5, dur: 3.0 },
+            { freq: 247, start: 9.5, dur: 2.5 },
+        ];
+
+        for (const p of pads) {
+            this._playBgPad(p.freq, now + p.start, p.dur);
         }
 
         return dur;

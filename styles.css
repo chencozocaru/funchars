@@ -110,6 +110,10 @@ body {
     background: linear-gradient(180deg, #e8a040 0%, #d4903a 50%, #c08030 100%);
 }
 
+.bird-preview {
+    background: linear-gradient(180deg, #87CEEB 0%, #d0eaff 60%, #90d060 100%);
+}
+
 .world-character {
     font-size: 5rem;
     animation: float 3s ease-in-out infinite;
