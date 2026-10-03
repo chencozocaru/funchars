@@ -90,6 +90,20 @@ const WORLDS = {
         skyColors: ['#1a4a20', '#4a9a50'],
         bgElements: 'jungle',
     },
+    pterodactyl: {
+        name: 'Pterodactyl World',
+        groundColor: '#5a3d2b',
+        groundTopColor: '#7cba3f',
+        skyColors: ['#c8a8e0', '#e8d0f0'],
+        bgElements: 'prehistoric',
+    },
+    pikachu: {
+        name: 'Pikachu World',
+        groundColor: '#6a9a3a',
+        groundTopColor: '#8fd050',
+        skyColors: ['#6ec6ff', '#fff6b0'],
+        bgElements: 'sky',
+    },
     ankylo: {
         name: 'Ankylo World',
         groundColor: '#5a4a2b',
@@ -120,7 +134,7 @@ class Game {
     constructor(worldType) {
         this.worldType = worldType;
         this.world = WORLDS[worldType];
-        this.isBirdWorld = (worldType === 'bird');
+        this.isBirdWorld = (worldType === 'bird' || worldType === 'pterodactyl');
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
 
@@ -1409,6 +1423,10 @@ class Game {
             this.drawCheetah(ctx, p);
         } else if (this.worldType === 'bird') {
             this.drawBird(ctx, p);
+        } else if (this.worldType === 'pterodactyl') {
+            this.drawPterodactyl(ctx, p);
+        } else if (this.worldType === 'pikachu') {
+            this.drawPikachu(ctx, p);
         } else if (this.worldType === 'lion') {
             this.drawLion(ctx, p);
         } else if (this.worldType === 'ankylo') {
@@ -2525,6 +2543,208 @@ class Game {
         ctx.restore();
     }
 
+    drawPterodactyl(ctx, p) {
+        const bobY = p.grounded ? Math.sin(this.frameCount * 0.1) * 4 : 0;
+        const diving = !p.grounded && p.vy > 0;
+        const rising = !p.grounded && p.vy < 0;
+
+        const flapSpeed = diving ? 0.5 : 0.15;
+        const wingAngle = Math.sin(this.frameCount * flapSpeed) * 0.8;
+        const bodyTilt = diving ? 0.3 : (rising ? -0.2 : 0);
+
+        ctx.save();
+        ctx.rotate(bodyTilt);
+
+        // Tail (long, thin with diamond tip)
+        ctx.fillStyle = '#7ab8a0';
+        ctx.beginPath();
+        ctx.moveTo(-14, -28 + bobY);
+        ctx.quadraticCurveTo(-30, -25 + bobY, -42, -32 + bobY);
+        ctx.lineTo(-38, -28 + bobY);
+        ctx.quadraticCurveTo(-28, -28 + bobY, -14, -30 + bobY);
+        ctx.fill();
+        // Tail diamond tip
+        ctx.fillStyle = '#5a9a80';
+        ctx.beginPath();
+        ctx.moveTo(-42, -32 + bobY);
+        ctx.lineTo(-48, -36 + bobY);
+        ctx.lineTo(-42, -28 + bobY);
+        ctx.lineTo(-38, -32 + bobY);
+        ctx.fill();
+
+        // ─── Wings (big membrane wings) ───
+        // Left wing (top)
+        ctx.save();
+        ctx.translate(-4, -38 + bobY);
+        ctx.rotate(-wingAngle - 0.2);
+        ctx.fillStyle = '#90d0b8';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(-15, -8, -35, -2);
+        ctx.quadraticCurveTo(-30, 6, -10, 8);
+        ctx.lineTo(0, 4);
+        ctx.fill();
+        // Wing membrane lines
+        ctx.strokeStyle = '#70b098';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(-2, 0);
+        ctx.lineTo(-28, -1);
+        ctx.moveTo(-5, 2);
+        ctx.lineTo(-25, 3);
+        ctx.stroke();
+        // Wing claw
+        ctx.fillStyle = '#e8e0d0';
+        ctx.beginPath();
+        ctx.moveTo(-34, -4);
+        ctx.lineTo(-38, -6);
+        ctx.lineTo(-35, 0);
+        ctx.fill();
+        ctx.restore();
+
+        // Right wing (bottom, behind body)
+        ctx.save();
+        ctx.translate(-4, -26 + bobY);
+        ctx.rotate(wingAngle + 0.2);
+        ctx.fillStyle = '#80c0a8';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(-12, 6, -30, 2);
+        ctx.quadraticCurveTo(-25, -4, -8, -6);
+        ctx.lineTo(0, -2);
+        ctx.fill();
+        ctx.restore();
+
+        // ─── Body (small, compact dino body) ───
+        ctx.fillStyle = '#7ec8b0';
+        ctx.beginPath();
+        ctx.ellipse(0, -30 + bobY, 16, 12, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Belly
+        ctx.fillStyle = '#b8e8d8';
+        ctx.beginPath();
+        ctx.ellipse(2, -26 + bobY, 10, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ─── Diaper (baby!) ───
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.ellipse(0, -20 + bobY, 13, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#90d0b8';
+        ctx.beginPath();
+        ctx.ellipse(-8, -23 + bobY, 3, 2, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(8, -23 + bobY, 3, 2, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ─── Head (big head with crest, baby proportions) ───
+        // Crest (iconic pterodactyl head crest)
+        ctx.fillStyle = '#60b090';
+        ctx.beginPath();
+        ctx.moveTo(14, -48 + bobY);
+        ctx.quadraticCurveTo(5, -62 + bobY, -8, -58 + bobY);
+        ctx.quadraticCurveTo(-2, -52 + bobY, 10, -46 + bobY);
+        ctx.fill();
+
+        // Head
+        ctx.fillStyle = '#8ad4bc';
+        ctx.beginPath();
+        ctx.arc(16, -44 + bobY, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cheek blush
+        ctx.fillStyle = 'rgba(255, 160, 140, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(12, -38 + bobY, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eye (big, cute)
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(20, -46 + bobY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(21.5, -47.5 + bobY, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Long beak/snout
+        ctx.fillStyle = '#e8c080';
+        ctx.beginPath();
+        ctx.moveTo(27, -46 + bobY);
+        ctx.lineTo(42, -42 + bobY);
+        ctx.lineTo(27, -40 + bobY);
+        ctx.fill();
+        // Beak line
+        ctx.strokeStyle = '#c8a060';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(27, -43 + bobY);
+        ctx.lineTo(40, -42 + bobY);
+        ctx.stroke();
+
+        // Nostril
+        ctx.fillStyle = '#b09050';
+        ctx.beginPath();
+        ctx.ellipse(33, -44 + bobY, 1.2, 0.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Smile
+        ctx.strokeStyle = '#5a9a80';
+        ctx.lineWidth = 1.3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(28, -41 + bobY, 4, 0.1, Math.PI * 0.5);
+        ctx.stroke();
+
+        // ─── Small dangling feet ───
+        ctx.strokeStyle = '#e8c080';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        if (!diving) {
+            ctx.beginPath();
+            ctx.moveTo(-4, -18 + bobY);
+            ctx.lineTo(-6, -12 + bobY);
+            ctx.lineTo(-10, -10 + bobY);
+            ctx.moveTo(-6, -12 + bobY);
+            ctx.lineTo(-3, -10 + bobY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(4, -18 + bobY);
+            ctx.lineTo(6, -12 + bobY);
+            ctx.lineTo(10, -10 + bobY);
+            ctx.moveTo(6, -12 + bobY);
+            ctx.lineTo(3, -10 + bobY);
+            ctx.stroke();
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(-2, -18 + bobY);
+            ctx.lineTo(-8, -16 + bobY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(4, -18 + bobY);
+            ctx.lineTo(-2, -16 + bobY);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
+    drawPikachu(ctx, p) {
+        const bobY = p.grounded ? Math.sin(this.frameCount * 0.15) * 2 : 0;
+        const legPhase = p.grounded ? this.player.frame : 0;
+        drawPikachuFigure(ctx, {
+            bobY,
+            lo1: Math.sin(legPhase * 1.5) * 5,
+            lo2: Math.sin(legPhase * 1.5 + Math.PI) * 5,
+            sparks: !p.grounded,
+            frame: this.frameCount,
+        });
+    }
+
     drawLion(ctx, p) {
         const bobY = p.grounded ? Math.sin(this.frameCount * 0.15) * 2 : 0;
         const legPhase = p.grounded ? this.player.frame : 0;
@@ -2920,10 +3140,11 @@ class Game {
         for (let i = 0; i < MAX_LIVES; i++) {
             const bx = boneStartX - i * Math.round(38 * s);
             const by = Math.round(24 * s);
-            if (i < this.lives) {
-                this.drawBone(ctx, bx, by, 1, s);
+            const alpha = i < this.lives ? 1 : 0.3;
+            if (this.worldType === 'pikachu') {
+                this.drawBolt(ctx, bx, by, alpha, s);
             } else {
-                this.drawBone(ctx, bx, by, 0.3, s);
+                this.drawBone(ctx, bx, by, alpha, s);
             }
         }
 
@@ -3011,6 +3232,28 @@ class Game {
             ctx.stroke();
         }
 
+        ctx.restore();
+    }
+
+    drawBolt(ctx, x, y, alpha, s = 1) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y);
+        ctx.scale(s, s);
+        ctx.fillStyle = '#ffd83a';
+        ctx.strokeStyle = '#b8860b';
+        ctx.lineWidth = 1.5;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(4, -13);
+        ctx.lineTo(-7, 2);
+        ctx.lineTo(0, 2);
+        ctx.lineTo(-4, 13);
+        ctx.lineTo(8, -3);
+        ctx.lineTo(1, -3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
         ctx.restore();
     }
 
@@ -3185,6 +3428,8 @@ function drawCardBackground(ctx, worldType) {
         meerkat: ['#f0c27f', '#fce38a'],
         warthog: ['#1a4a20', '#4a9a50'],
         cheetah: ['#e8a040', '#f5d080'],
+        pterodactyl: ['#c8a8e0', '#e0c8f0'],
+        pikachu: ['#6ec6ff', '#fff6b0'],
         bird: ['#87CEEB', '#d0eaff'],
     };
     const sky = skyMap[worldType] || ['#87CEEB', '#d0eaff'];
@@ -3319,6 +3564,46 @@ function drawCardBackground(ctx, worldType) {
         ctx.beginPath();
         ctx.ellipse(96, gy - 25, 14, 5, 0, 0, Math.PI * 2);
         ctx.fill();
+    } else if (worldType === 'pterodactyl') {
+        // Prehistoric sky
+        // Volcano in distance
+        ctx.fillStyle = '#6a4a2a';
+        ctx.beginPath();
+        ctx.moveTo(80, gy);
+        ctx.lineTo(95, gy - 35);
+        ctx.lineTo(110, gy);
+        ctx.fill();
+        ctx.fillStyle = '#ff6030';
+        ctx.beginPath();
+        ctx.ellipse(95, gy - 35, 4, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Clouds
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.arc(20, 22, 8, 0, Math.PI * 2);
+        ctx.arc(28, 19, 10, 0, Math.PI * 2);
+        ctx.fill();
+        // Ground
+        ctx.fillStyle = '#7cba3f';
+        ctx.fillRect(0, gy, W, H - gy);
+    } else if (worldType === 'pikachu') {
+        // Sun
+        ctx.fillStyle = '#ffe14a';
+        ctx.beginPath();
+        ctx.arc(100, 20, 10, 0, Math.PI * 2);
+        ctx.fill();
+        // Pine tree in the distance
+        ctx.fillStyle = '#2a7a30';
+        ctx.beginPath();
+        ctx.moveTo(10, gy);
+        ctx.lineTo(20, gy - 38);
+        ctx.lineTo(30, gy);
+        ctx.fill();
+        // Grass
+        ctx.fillStyle = '#8fd050';
+        ctx.fillRect(0, gy, W, H - gy);
+        // Poké Ball in the grass
+        drawPokeBall(ctx, 100, gy - 5, 6);
     } else if (worldType === 'lion') {
         // Cheering animals silhouettes
         // Small zebra
@@ -3813,7 +4098,9 @@ function startVictoryDance(worldType) {
                       worldType === 'cheetah' ? '#e8b840' :
                       worldType === 'bird' ? '#7ec8e3' :
                       worldType === 'lion' ? '#e8b840' :
-                      worldType === 'ankylo' ? '#a09060' : '#7ec8e3';
+                      worldType === 'ankylo' ? '#a09060' :
+                      worldType === 'pterodactyl' ? '#7ec8b0' :
+                      worldType === 'pikachu' ? '#ffd83a' : '#7ec8e3';
 
         const darkColor = worldType === 'dino' ? '#6bb8d4' :
                           worldType === 'dog' ? '#5cb3d0' :
@@ -3822,7 +4109,9 @@ function startVictoryDance(worldType) {
                           worldType === 'cheetah' ? '#d4a030' :
                           worldType === 'bird' ? '#5ab8d8' :
                           worldType === 'lion' ? '#c08028' :
-                          worldType === 'ankylo' ? '#7a6a40' : '#6bb8d4';
+                          worldType === 'ankylo' ? '#7a6a40' :
+                          worldType === 'pterodactyl' ? '#5a9a80' :
+                          worldType === 'pikachu' ? '#e8b820' : '#6bb8d4';
 
         // Legs (dancing!)
         const legL = Math.sin(frame * 0.3) * 8;
@@ -3848,7 +4137,9 @@ function startVictoryDance(worldType) {
         ctx.fillStyle = worldType === 'cheetah' ? '#f5e0a0' :
                         worldType === 'bird' ? '#c8ecf8' :
                         worldType === 'lion' ? '#f5d880' :
-                        worldType === 'ankylo' ? '#c8b880' : '#b8e6f5';
+                        worldType === 'ankylo' ? '#c8b880' :
+                        worldType === 'pterodactyl' ? '#b8e8d8' :
+                        worldType === 'pikachu' ? '#ffe680' : '#b8e6f5';
         if (worldType === 'meerkat') ctx.fillStyle = '#eed8a8';
         if (worldType === 'warthog') ctx.fillStyle = '#c8956a';
         ctx.beginPath();
@@ -3880,11 +4171,26 @@ function startVictoryDance(worldType) {
         ctx.fill();
         ctx.restore();
 
+        // Pikachu ears (behind head)
+        if (worldType === 'pikachu') {
+            drawPikachuEar(ctx, -12, -66, -0.8 + Math.sin(frame * 0.3) * 0.15, 1.1);
+            drawPikachuEar(ctx, 12, -66, 0.8 - Math.sin(frame * 0.3) * 0.15, 1.1);
+        }
+
         // Head
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(0, -58, 18, 0, Math.PI * 2);
         ctx.fill();
+
+        // Pikachu red cheeks
+        if (worldType === 'pikachu') {
+            ctx.fillStyle = '#e8402a';
+            ctx.beginPath();
+            ctx.arc(-12, -52, 4.5, 0, Math.PI * 2);
+            ctx.arc(12, -52, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         // Eyes (happy squint!)
         ctx.strokeStyle = '#333';
@@ -4786,6 +5092,318 @@ function drawDogCard() {
     ctx.restore();
 }
 
+function drawPterodactylCard() {
+    const canvas = document.getElementById('pterodactyl-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    drawCardBackground(ctx, 'pterodactyl');
+    ctx.save();
+    ctx.translate(60, 60);
+    ctx.scale(0.7, 0.7);
+    ctx.translate(-60, -60);
+    const cx = 55, cy = 58;
+
+    // Tail
+    ctx.fillStyle = '#7ab8a0';
+    ctx.beginPath();
+    ctx.moveTo(cx - 14, cy - 2);
+    ctx.quadraticCurveTo(cx - 28, cy, cx - 36, cy - 6);
+    ctx.lineTo(cx - 32, cy - 2);
+    ctx.quadraticCurveTo(cx - 24, cy - 2, cx - 14, cy - 4);
+    ctx.fill();
+    // Diamond tip
+    ctx.fillStyle = '#5a9a80';
+    ctx.beginPath();
+    ctx.moveTo(cx - 36, cy - 6);
+    ctx.lineTo(cx - 42, cy - 10);
+    ctx.lineTo(cx - 36, cy - 2);
+    ctx.lineTo(cx - 32, cy - 6);
+    ctx.fill();
+
+    // Wings
+    ctx.fillStyle = '#90d0b8';
+    ctx.beginPath();
+    ctx.moveTo(cx - 4, cy - 12);
+    ctx.quadraticCurveTo(cx - 18, cy - 22, cx - 34, cy - 14);
+    ctx.quadraticCurveTo(cx - 28, cy - 6, cx - 8, cy - 4);
+    ctx.fill();
+    ctx.fillStyle = '#80c0a8';
+    ctx.beginPath();
+    ctx.moveTo(cx - 4, cy + 2);
+    ctx.quadraticCurveTo(cx - 14, cy + 8, cx - 28, cy + 4);
+    ctx.quadraticCurveTo(cx - 22, cy - 2, cx - 6, cy - 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = '#7ec8b0';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 4, 14, 10, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = '#b8e8d8';
+    ctx.beginPath();
+    ctx.ellipse(cx + 2, cy, 9, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Diaper
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 6, 11, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#90d0b8';
+    ctx.beginPath();
+    ctx.ellipse(cx - 7, cy + 4, 2.5, 2, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 7, cy + 4, 2.5, 2, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Crest
+    ctx.fillStyle = '#60b090';
+    ctx.beginPath();
+    ctx.moveTo(cx + 14, cy - 18);
+    ctx.quadraticCurveTo(cx + 6, cy - 32, cx - 6, cy - 28);
+    ctx.quadraticCurveTo(cx, cy - 22, cx + 10, cy - 16);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = '#8ad4bc';
+    ctx.beginPath();
+    ctx.arc(cx + 16, cy - 16, 11, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Blush
+    ctx.fillStyle = 'rgba(255, 160, 140, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(cx + 12, cy - 10, 4, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(cx + 19, cy - 18, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx + 20, cy - 19, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Beak
+    ctx.fillStyle = '#e8c080';
+    ctx.beginPath();
+    ctx.moveTo(cx + 25, cy - 18);
+    ctx.lineTo(cx + 38, cy - 14);
+    ctx.lineTo(cx + 25, cy - 12);
+    ctx.fill();
+
+    // Feet
+    ctx.strokeStyle = '#e8c080';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 2, cy + 12);
+    ctx.lineTo(cx - 4, cy + 18);
+    ctx.moveTo(cx + 4, cy + 12);
+    ctx.lineTo(cx + 6, cy + 18);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+// ─── Pikachu drawing (shared by game, card) ───────────────
+// Origin is between the feet, facing right.
+function drawPikachuEar(ctx, x, y, angle, size) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.scale(size, size);
+    ctx.fillStyle = '#ffd83a';
+    ctx.beginPath();
+    ctx.moveTo(-6, 0);
+    ctx.quadraticCurveTo(-7, -14, 0, -26);
+    ctx.quadraticCurveTo(7, -14, 6, 0);
+    ctx.closePath();
+    ctx.fill();
+    // Black tip
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.moveTo(-4.3, -16);
+    ctx.quadraticCurveTo(-3.5, -21, 0, -26);
+    ctx.quadraticCurveTo(3.5, -21, 4.3, -16);
+    ctx.quadraticCurveTo(0, -14, -4.3, -16);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawPokeBall(ctx, x, y, r) {
+    ctx.fillStyle = '#e8402a';
+    ctx.beginPath();
+    ctx.arc(x, y, r, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = r * 0.2;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.moveTo(x - r, y);
+    ctx.lineTo(x + r, y);
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+}
+
+function drawPikachuFigure(ctx, { bobY = 0, lo1 = 0, lo2 = 0, sparks = false, frame = 0 }) {
+    const yellow = '#ffd83a';
+    const darkYellow = '#e8b820';
+    const brown = '#8a5a2a';
+
+    // Lightning-bolt tail
+    ctx.fillStyle = brown;
+    ctx.beginPath();
+    ctx.moveTo(-12, -14 + bobY);
+    ctx.lineTo(-20, -20 + bobY);
+    ctx.lineTo(-16, -24 + bobY);
+    ctx.lineTo(-9, -18 + bobY);
+    ctx.fill();
+    ctx.fillStyle = yellow;
+    ctx.strokeStyle = darkYellow;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-20, -20 + bobY);
+    ctx.lineTo(-28, -34 + bobY);
+    ctx.lineTo(-22, -36 + bobY);
+    ctx.lineTo(-34, -52 + bobY);
+    ctx.lineTo(-24, -54 + bobY);
+    ctx.lineTo(-44, -68 + bobY);
+    ctx.lineTo(-30, -44 + bobY);
+    ctx.lineTo(-36, -42 + bobY);
+    ctx.lineTo(-26, -26 + bobY);
+    ctx.lineTo(-16, -24 + bobY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Feet
+    ctx.fillStyle = darkYellow;
+    ctx.beginPath();
+    ctx.ellipse(-6 + lo1, -3, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = yellow;
+    ctx.beginPath();
+    ctx.ellipse(7 + lo2, -3, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body (chubby pear shape)
+    ctx.fillStyle = yellow;
+    ctx.beginPath();
+    ctx.ellipse(0, -20 + bobY, 15, 17, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Brown back stripes
+    ctx.strokeStyle = brown;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(0, -20 + bobY, 13, Math.PI * 0.95, Math.PI * 1.15);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, -14 + bobY, 13, Math.PI * 0.9, Math.PI * 1.08);
+    ctx.stroke();
+
+    // Little arms
+    ctx.fillStyle = darkYellow;
+    ctx.beginPath();
+    ctx.ellipse(10, -24 + bobY, 6, 3.5, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ears (behind head)
+    const earWiggle = sparks ? Math.sin(frame * 0.6) * 0.1 : 0;
+    drawPikachuEar(ctx, -4, -54 + bobY, -0.55 + earWiggle, 1);
+    drawPikachuEar(ctx, 12, -56 + bobY, 0.35 - earWiggle, 1);
+
+    // Head
+    ctx.fillStyle = yellow;
+    ctx.beginPath();
+    ctx.ellipse(5, -42 + bobY, 17, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    for (const ex of [2, 14]) {
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(ex, -45 + bobY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(ex + 1, -46.5 + bobY, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Red cheeks
+    ctx.fillStyle = '#e8402a';
+    ctx.beginPath();
+    ctx.arc(-6, -37 + bobY, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(19, -37 + bobY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nose
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.ellipse(8, -40 + bobY, 1.2, 0.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Smile (little "w")
+    ctx.strokeStyle = '#5a3a1a';
+    ctx.lineWidth = 1.3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(6, -38 + bobY, 2.2, 0.2, Math.PI - 0.2);
+    ctx.arc(10.4, -38 + bobY, 2.2, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+
+    // Electric sparks from cheeks while jumping!
+    if (sparks) {
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        const j = (Math.floor(frame / 2) % 3) - 1;
+        // Dark outline first, then bright zap on top
+        for (const [color, width] of [['#c07a00', 4.5], [(Math.floor(frame / 3) % 2) ? '#fff36b' : '#ffffff', 2]]) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            for (const [cx, dir] of [[-6, -1], [19, 1]]) {
+                ctx.beginPath();
+                ctx.moveTo(cx + dir * 5, -37 + bobY);
+                ctx.lineTo(cx + dir * 11, -42 + bobY + j * 2);
+                ctx.lineTo(cx + dir * 9, -35 + bobY);
+                ctx.lineTo(cx + dir * 17, -39 + bobY - j * 2);
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+function drawPikachuCard() {
+    const canvas = document.getElementById('pikachu-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 120, 120);
+    drawCardBackground(ctx, 'pikachu');
+    ctx.save();
+    ctx.translate(62, 95);
+    ctx.scale(0.9, 0.9);
+    drawPikachuFigure(ctx, {});
+    ctx.restore();
+}
+
 function drawAnkyloCard() {
     const canvas = document.getElementById('ankylo-card-canvas');
     if (!canvas) return;
@@ -5158,6 +5776,8 @@ window.addEventListener('DOMContentLoaded', () => {
     drawMeerkatCard();
     drawWarthogCard();
     drawCheetahCard();
+    drawPterodactylCard();
+    drawPikachuCard();
     drawAnkyloCard();
     drawLionCard();
     drawBirdCard();
