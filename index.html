@@ -60,6 +60,13 @@
                 <h2>עולם הפיקאצ'ו</h2>
                 <p>פיקה פיקה! ⚡</p>
             </div>
+            <div class="world-card" id="world-squirtle" onclick="chooseWorld('squirtle')">
+                <div class="world-preview squirtle-preview">
+                    <canvas id="squirtle-card-canvas" width="120" height="120" class="world-character-canvas"></canvas>
+                </div>
+                <h2>עולם הסקווירטל</h2>
+                <p>הרפתקה מתחת למים! 🌊</p>
+            </div>
             <div class="world-card" id="world-ankylo" onclick="chooseWorld('ankylo')">
                 <div class="world-preview ankylo-preview">
                     <canvas id="ankylo-card-canvas" width="120" height="120" class="world-character-canvas"></canvas>
@@ -128,6 +135,11 @@
                     <span class="diff-icon">🔢</span>
                     <span class="diff-label">חשבון</span>
                     <span class="diff-desc">חיבור וחיסור עד 10</span>
+                </button>
+                <button class="diff-btn diff-hard" onclick="selectMode('words')">
+                    <span class="diff-icon">🍌</span>
+                    <span class="diff-label">מילים</span>
+                    <span class="diff-desc">לתפוס את האותיות של המילה</span>
                 </button>
             </div>
             <button class="diff-back" onclick="cancelMode()">חזרה</button>

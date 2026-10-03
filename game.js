@@ -12,6 +12,53 @@ const HEBREW_LETTERS = [
     'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ', 'ק', 'ר', 'ש', 'ת'
 ];
 
+// Final letters look different but sound the same — never use the regular
+// form as a "wrong" letter when the target is a final letter.
+const FINAL_TO_REGULAR = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+
+// Words mode: a picture + the word, catch its letters in order
+const WORDS = [
+    { word: 'בננה', emoji: '🍌' },
+    { word: 'כלב', emoji: '🐕' },
+    { word: 'חתול', emoji: '🐈' },
+    { word: 'דג', emoji: '🐟' },
+    { word: 'בית', emoji: '🏠' },
+    { word: 'שמש', emoji: '☀️' },
+    { word: 'ירח', emoji: '🌙' },
+    { word: 'תפוח', emoji: '🍎' },
+    { word: 'עוגה', emoji: '🎂' },
+    { word: 'פרח', emoji: '🌸' },
+    { word: 'כדור', emoji: '⚽' },
+    { word: 'ספר', emoji: '📖' },
+    { word: 'אריה', emoji: '🦁' },
+    { word: 'פיל', emoji: '🐘' },
+    { word: 'סוס', emoji: '🐴' },
+    { word: 'עץ', emoji: '🌳' },
+    { word: 'לב', emoji: '❤️' },
+    { word: 'גלידה', emoji: '🍦' },
+    { word: 'רכבת', emoji: '🚂' },
+    { word: 'ביצה', emoji: '🥚' },
+    { word: 'צב', emoji: '🐢' },
+    { word: 'תות', emoji: '🍓' },
+    { word: 'מטוס', emoji: '✈️' },
+    { word: 'כוכב', emoji: '⭐' },
+    { word: 'אבטיח', emoji: '🍉' },
+    { word: 'שעון', emoji: '⏰' },
+    { word: 'דבורה', emoji: '🐝' },
+    { word: 'גזר', emoji: '🥕' },
+    { word: 'פרה', emoji: '🐄' },
+    { word: 'נחש', emoji: '🐍' },
+];
+
+function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 // Cache Hebrew voice
 let hebrewVoice = null;
 
@@ -104,6 +151,13 @@ const WORLDS = {
         skyColors: ['#6ec6ff', '#fff6b0'],
         bgElements: 'sky',
     },
+    squirtle: {
+        name: 'Squirtle World',
+        groundColor: '#c8a868',
+        groundTopColor: '#e8d098',
+        skyColors: ['#4ab8e8', '#0a3a7a'],
+        bgElements: 'underwater',
+    },
     ankylo: {
         name: 'Ankylo World',
         groundColor: '#5a4a2b',
@@ -142,7 +196,10 @@ class Game {
         this.lives = MAX_LIVES;
         this.score = 0;
         this.currentLetterIndex = 0;
-        this.gameMode = gameMode; // 'letters' or 'math'
+        this.gameMode = gameMode; // 'letters', 'math' or 'words'
+        this.wordList = [];
+        this.wordIndex = 0;
+        this.wordPos = 0; // how many letters of the current word were caught
         this.exerciseCount = 0;
         this.totalExercises = 0;
         this.currentExercise = null;
@@ -213,6 +270,8 @@ class Game {
         if (this.gameMode === 'math') {
             this.totalExercises = Math.round(POINTS_TO_PASS / POINTS_PER_CHAR);
             this.generateExercise();
+        } else if (this.gameMode === 'words') {
+            this.startWords();
         }
 
         // Start loop
@@ -297,6 +356,15 @@ class Game {
                     size: 0.6 + Math.random() * 0.6
                 });
             }
+        } else if (this.world.bgElements === 'underwater') {
+            for (let i = 0; i < 25; i++) {
+                const type = ['seaweed', 'coral', 'rock', 'starfish', 'seaweed'][Math.floor(Math.random() * 5)];
+                this.bgElements.push({
+                    type,
+                    x: i * 300 + Math.random() * 250,
+                    size: 0.6 + Math.random() * 0.8
+                });
+            }
         } else if (this.world.bgElements === 'sky') {
             for (let i = 0; i < 15; i++) {
                 const type = ['mountain', 'hill', 'pinetree'][Math.floor(Math.random() * 3)];
@@ -359,6 +427,30 @@ class Game {
         return HEBREW_LETTERS[this.currentLetterIndex];
     }
 
+    // ─── Words mode ─────────────────────────────────────────
+    startWords() {
+        // Difficulty decides how many words: fast 3, easy 5, medium 10, hard 20
+        this.wordList = shuffle(WORDS).slice(0, Math.round(POINTS_TO_PASS / POINTS_PER_CHAR));
+        this.wordIndex = 0;
+        this.wordPos = 0;
+        this.announceWord();
+    }
+
+    get currentWord() {
+        return this.wordList[this.wordIndex];
+    }
+
+    // The letter the player needs to catch next
+    get targetChar() {
+        if (this.gameMode === 'words') return this.currentWord.word[this.wordPos];
+        return this.currentLetter;
+    }
+
+    announceWord() {
+        const word = this.currentWord.word;
+        setTimeout(() => speakLetter(word), 600);
+    }
+
     generateExercise() {
         const op = Math.random() < 0.5 ? '+' : '-';
         let a, b, answer;
@@ -390,14 +482,13 @@ class Game {
                 letter = String(wrong);
             }
         } else {
+            const target = this.targetChar;
             if (isCorrect) {
-                letter = this.currentLetter;
+                letter = target;
             } else {
-                let idx;
                 do {
-                    idx = Math.floor(Math.random() * HEBREW_LETTERS.length);
-                } while (idx === this.currentLetterIndex);
-                letter = HEBREW_LETTERS[idx];
+                    letter = HEBREW_LETTERS[Math.floor(Math.random() * HEBREW_LETTERS.length)];
+                } while (letter === target || FINAL_TO_REGULAR[target] === letter);
             }
         }
 
@@ -412,7 +503,7 @@ class Game {
 
         const isCorrectAnswer = this.gameMode === 'math'
             ? letter === String(this.currentExercise.answer)
-            : letter === this.currentLetter;
+            : letter === this.targetChar;
 
         this.letters.push({
             letter,
@@ -515,7 +606,20 @@ class Game {
             if (dist < 45 * this.scale) {
                 l.collected = true;
                 setTimeout(() => speakLetter(l.letter), 400);
-                if (l.correct) {
+                const isRight = this.gameMode === 'words' ? l.letter === this.targetChar : l.correct;
+                if (isRight && this.gameMode === 'words') {
+                    this.wordPos++;
+                    this.spawnParticles(l.x, l.y, '#FFD700', 15);
+                    gameAudio.playCorrect();
+                    if (this.wordPos >= this.currentWord.word.length) {
+                        this.showFlash(this.currentWord.word + '! 🎉', '#FFD700');
+                        const word = this.currentWord.word;
+                        setTimeout(() => speakLetter(word), 1100);
+                        this.levelComplete();
+                    } else {
+                        this.showFlash('✓', '#2ecc71');
+                    }
+                } else if (isRight) {
                     this.score += POINTS_PER_CHAR;
                     this.spawnParticles(l.x, l.y, '#FFD700', 15);
                     this.showFlash('+2 ⭐', '#FFD700');
@@ -597,6 +701,17 @@ class Game {
             document.getElementById('next-letter-display').textContent = `תרגיל ${this.exerciseCount + 1}`;
             document.getElementById('level-complete-msg').textContent = 'כל הכבוד! עכשיו התרגיל הבא';
             document.getElementById('level-complete-overlay').classList.remove('hidden');
+        } else if (this.gameMode === 'words') {
+            if (this.wordIndex + 1 >= this.wordList.length) {
+                document.getElementById('win-overlay').classList.remove('hidden');
+                startVictoryDance(this.worldType);
+                spawnConfetti();
+                startGiftAnimation();
+                return;
+            }
+            document.getElementById('next-letter-display').textContent = this.wordList[this.wordIndex + 1].emoji;
+            document.getElementById('level-complete-msg').textContent = `כתבתם ${this.currentWord.word}! עכשיו המילה הבאה`;
+            document.getElementById('level-complete-overlay').classList.remove('hidden');
         } else {
             const nextIdx = this.currentLetterIndex + 1;
             if (nextIdx >= HEBREW_LETTERS.length) {
@@ -616,6 +731,10 @@ class Game {
     nextLevel() {
         if (this.gameMode === 'math') {
             this.generateExercise();
+        } else if (this.gameMode === 'words') {
+            this.wordIndex++;
+            this.wordPos = 0;
+            this.announceWord();
         } else {
             this.currentLetterIndex++;
         }
@@ -624,7 +743,8 @@ class Game {
         this.letterSpawnTimer = 0;
         this.paused = false;
         // Slightly increase speed each level
-        const levelNum = this.gameMode === 'math' ? this.exerciseCount : this.currentLetterIndex;
+        const levelNum = this.gameMode === 'math' ? this.exerciseCount
+            : this.gameMode === 'words' ? this.wordIndex : this.currentLetterIndex;
         this.speed = Math.min(6 + levelNum * 0.2, 10);
         document.getElementById('level-complete-overlay').classList.add('hidden');
     }
@@ -634,6 +754,9 @@ class Game {
         if (this.gameMode === 'math') {
             document.getElementById('final-score').textContent =
                 `השלמתם ${this.exerciseCount} תרגילים עם ${this.score} נקודות`;
+        } else if (this.gameMode === 'words') {
+            document.getElementById('final-score').textContent =
+                `כתבתם ${this.wordIndex} מילים`;
         } else {
             document.getElementById('final-score').textContent =
                 `הגעתם לאות ${this.currentLetter} עם ${this.score} נקודות`;
@@ -648,6 +771,8 @@ class Game {
         this.exerciseCount = 0;
         if (this.gameMode === 'math') {
             this.generateExercise();
+        } else if (this.gameMode === 'words') {
+            this.startWords();
         }
         this.speed = this.worldType === 'cheetah' ? 9 : 6;
         this.letters = [];
@@ -734,6 +859,10 @@ class Game {
     }
 
     drawClouds(ctx) {
+        if (this.world.bgElements === 'underwater') {
+            this.drawUnderwaterSky(ctx);
+            return;
+        }
         ctx.fillStyle = 'rgba(255,255,255,0.8)';
         for (const c of this.clouds) {
             ctx.beginPath();
@@ -763,6 +892,8 @@ class Game {
                 this.drawSavannaKingElement(ctx, el.type, s);
             } else if (this.world.bgElements === 'sky') {
                 this.drawSkyElement(ctx, el.type, s);
+            } else if (this.world.bgElements === 'underwater') {
+                this.drawUnderwaterElement(ctx, el.type, s);
             } else {
                 this.drawNeighborhoodElement(ctx, el.type, s);
             }
@@ -1259,6 +1390,123 @@ class Game {
         }
     }
 
+    drawUnderwaterSky(ctx) {
+        const W = this.canvas.width;
+        // Sunlight rays from the surface
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+        for (let i = 0; i < 5; i++) {
+            const rx = ((i * 260 - this.scrollX * 0.1) % (W + 300) + W + 300) % (W + 300) - 150;
+            ctx.beginPath();
+            ctx.moveTo(rx, 0);
+            ctx.lineTo(rx + 60, 0);
+            ctx.lineTo(rx + 160, this.groundY);
+            ctx.lineTo(rx + 70, this.groundY);
+            ctx.fill();
+        }
+
+        // Fish swimming (reuse the cloud slots)
+        const fishColors = ['#ff8c42', '#ffd166', '#ef476f', '#f78fb3', '#7bdff2'];
+        this.clouds.forEach((c, i) => {
+            const fs = c.size / 50;
+            const wiggle = Math.sin(this.frameCount * 0.2 + i) * 0.25;
+            ctx.save();
+            ctx.translate(c.x, c.y + Math.sin(this.frameCount * 0.05 + i) * 5);
+            ctx.scale(fs, fs);
+            ctx.fillStyle = fishColors[i % fishColors.length];
+            // Tail (fish swims left, tail on the right)
+            ctx.save();
+            ctx.translate(12, 0);
+            ctx.rotate(wiggle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(12, -8);
+            ctx.lineTo(12, 8);
+            ctx.fill();
+            ctx.restore();
+            // Body
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 15, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Eye
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(-8, -2, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.arc(-8.5, -2, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Rising bubbles
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 14; i++) {
+            const bx = (i * 97 + Math.sin(this.frameCount * 0.03 + i) * 10) % W;
+            const by = this.groundY - ((this.frameCount * (0.6 + (i % 4) * 0.3) + i * 70) % this.groundY);
+            ctx.beginPath();
+            ctx.arc(bx, by, 2 + (i % 3) * 2, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+
+    drawUnderwaterElement(ctx, type, s) {
+        switch (type) {
+            case 'seaweed': {
+                const sway = Math.sin(this.frameCount * 0.04 + s * 10) * 8 * s;
+                ctx.strokeStyle = '#2a9a5a';
+                ctx.lineWidth = 6 * s;
+                ctx.lineCap = 'round';
+                for (const off of [-8, 0, 8]) {
+                    ctx.beginPath();
+                    ctx.moveTo(off * s, 0);
+                    ctx.quadraticCurveTo(off * s + sway * 1.5, -50 * s, off * s - sway, -100 * s + Math.abs(off) * 3 * s);
+                    ctx.stroke();
+                }
+                break;
+            }
+            case 'coral':
+                ctx.strokeStyle = '#ff7a8a';
+                ctx.lineWidth = 7 * s;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, -50 * s);
+                ctx.moveTo(0, -20 * s);
+                ctx.lineTo(-20 * s, -40 * s);
+                ctx.lineTo(-22 * s, -60 * s);
+                ctx.moveTo(0, -28 * s);
+                ctx.lineTo(18 * s, -45 * s);
+                ctx.lineTo(24 * s, -62 * s);
+                ctx.moveTo(0, -50 * s);
+                ctx.lineTo(-6 * s, -68 * s);
+                ctx.stroke();
+                break;
+            case 'rock':
+                ctx.fillStyle = '#5a6a7a';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 40 * s, 25 * s, 0, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.12)';
+                ctx.beginPath();
+                ctx.ellipse(-10 * s, -14 * s, 14 * s, 6 * s, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+            case 'starfish':
+                ctx.fillStyle = '#ffb347';
+                ctx.beginPath();
+                for (let k = 0; k < 10; k++) {
+                    const a = -Math.PI / 2 + k * Math.PI / 5;
+                    const r = (k % 2 ? 6 : 16) * s;
+                    ctx.lineTo(Math.cos(a) * r, -16 * s + Math.sin(a) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+                break;
+        }
+    }
+
     drawSkyElement(ctx, type, s) {
         switch (type) {
             case 'mountain':
@@ -1341,6 +1589,37 @@ class Game {
             // Track edge bottom
             ctx.fillStyle = '#a05020';
             ctx.fillRect(0, this.groundY + 85, W, H - this.groundY - 85);
+        } else if (this.worldType === 'squirtle') {
+            // Sandy sea floor
+            ctx.fillStyle = '#e8d098';
+            ctx.fillRect(0, this.groundY, W, H - this.groundY);
+            ctx.fillStyle = '#d8bc80';
+            for (let i = 0; i < W + 60; i += 40) {
+                const offset = (this.scrollX * 0.5) % 40;
+                ctx.beginPath();
+                ctx.ellipse(i - offset, this.groundY + 4, 22, 5, 0, 0, Math.PI);
+                ctx.fill();
+            }
+            // Little shells
+            for (let i = 0; i < W + 200; i += 170) {
+                const offset = (this.scrollX * 0.5) % 170;
+                const sx = i - offset;
+                const sy = this.groundY + 30 + (i % 3) * 12;
+                ctx.fillStyle = '#ffd0d8';
+                ctx.beginPath();
+                ctx.arc(sx, sy, 6, Math.PI, 0);
+                ctx.fill();
+                ctx.strokeStyle = '#e0a0b0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(sx - 4, sy - 4);
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(sx, sy - 6);
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(sx + 4, sy - 4);
+                ctx.stroke();
+            }
         } else if (this.worldType === 'bird') {
             // Lush green ground far below
             ctx.fillStyle = '#90d060';
@@ -1391,7 +1670,10 @@ class Game {
             const bubbleRadius = Math.round(30 * this.scale);
             ctx.beginPath();
             ctx.arc(l.x, l.y, bubbleRadius, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(180, 220, 255, 0.3)';
+            // Brighter bubbles so letters stay readable on the dark sea
+            ctx.fillStyle = this.world.bgElements === 'underwater'
+                ? 'rgba(225, 242, 255, 0.85)'
+                : 'rgba(180, 220, 255, 0.3)';
             ctx.fill();
             ctx.strokeStyle = '#7ab8e0';
             ctx.lineWidth = 2;
@@ -1427,6 +1709,8 @@ class Game {
             this.drawPterodactyl(ctx, p);
         } else if (this.worldType === 'pikachu') {
             this.drawPikachu(ctx, p);
+        } else if (this.worldType === 'squirtle') {
+            this.drawSquirtle(ctx, p);
         } else if (this.worldType === 'lion') {
             this.drawLion(ctx, p);
         } else if (this.worldType === 'ankylo') {
@@ -2745,6 +3029,18 @@ class Game {
         });
     }
 
+    drawSquirtle(ctx, p) {
+        const bobY = p.grounded ? Math.sin(this.frameCount * 0.15) * 2 : 0;
+        const legPhase = p.grounded ? this.player.frame : 0;
+        drawSquirtleFigure(ctx, {
+            bobY,
+            lo1: Math.sin(legPhase * 1.5) * 5,
+            lo2: Math.sin(legPhase * 1.5 + Math.PI) * 5,
+            bubbles: !p.grounded,
+            frame: this.frameCount,
+        });
+    }
+
     drawLion(ctx, p) {
         const bobY = p.grounded ? Math.sin(this.frameCount * 0.15) * 2 : 0;
         const legPhase = p.grounded ? this.player.frame : 0;
@@ -3143,9 +3439,16 @@ class Game {
             const alpha = i < this.lives ? 1 : 0.3;
             if (this.worldType === 'pikachu') {
                 this.drawBolt(ctx, bx, by, alpha, s);
+            } else if (this.worldType === 'squirtle') {
+                this.drawDrop(ctx, bx, by, alpha, s);
             } else {
                 this.drawBone(ctx, bx, by, alpha, s);
             }
+        }
+
+        if (this.gameMode === 'words') {
+            this.drawWordsHUD(ctx, W);
+            return;
         }
 
         // Current target - top center
@@ -3205,6 +3508,56 @@ class Game {
         ctx.fill();
     }
 
+    // Picture + word: caught letters green, next letter gold & underlined, rest faded
+    drawWordsHUD(ctx, W) {
+        const s = this.scale;
+        const { word, emoji } = this.currentWord;
+        const boxW = Math.round(Math.max(170, 70 + word.length * 42) * s);
+        const boxH = Math.round(118 * s);
+        const top = Math.round(8 * s);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        roundRect(ctx, W / 2 - boxW / 2, top, boxW, boxH, Math.round(14 * s));
+        ctx.fill();
+
+        // Picture
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `${Math.round(50 * s)}px Arial`;
+        ctx.fillStyle = '#000'; // opaque, otherwise the emoji inherits the box's transparency
+        ctx.fillText(emoji, W / 2, top + Math.round(36 * s));
+
+        // Word letters, drawn one by one right-to-left
+        const fontSize = Math.round(32 * s);
+        const gap = Math.round(8 * s);
+        ctx.font = `bold ${fontSize}px Arial`;
+        const letters = [...word];
+        const widths = letters.map(ch => ctx.measureText(ch).width);
+        const total = widths.reduce((a, b) => a + b, 0) + gap * (letters.length - 1);
+        let x = W / 2 + total / 2;
+        const y = top + Math.round(90 * s);
+        letters.forEach((ch, i) => {
+            const cx = x - widths[i] / 2;
+            if (i < this.wordPos) {
+                ctx.fillStyle = '#2ecc71';
+            } else if (i === this.wordPos) {
+                const pulse = 0.75 + Math.sin(this.frameCount * 0.12) * 0.25;
+                ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`;
+                ctx.fillRect(cx - widths[i] / 2, y + fontSize * 0.55, widths[i], Math.max(2, Math.round(3 * s)));
+                ctx.fillStyle = '#FFD700';
+            } else {
+                ctx.fillStyle = 'rgba(255,255,255,0.45)';
+            }
+            ctx.fillText(ch, cx, y);
+            x -= widths[i] + gap;
+        });
+        ctx.textBaseline = 'alphabetic';
+
+        // Word counter under the box
+        ctx.font = `${Math.round(11 * s)}px Arial`;
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(`מילה ${this.wordIndex + 1} מתוך ${this.wordList.length}`, W / 2, top + boxH + Math.round(14 * s));
+    }
+
     drawBone(ctx, x, y, alpha, s = 1) {
         ctx.save();
         ctx.globalAlpha = alpha;
@@ -3254,6 +3607,28 @@ class Game {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
+    }
+
+    drawDrop(ctx, x, y, alpha, s = 1) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y);
+        ctx.scale(s, s);
+        ctx.fillStyle = '#5ac8fa';
+        ctx.strokeStyle = '#1a78b8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, -13);
+        ctx.quadraticCurveTo(9, 0, 8, 4);
+        ctx.arc(0, 4, 8, 0, Math.PI);
+        ctx.quadraticCurveTo(-9, 0, 0, -13);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.beginPath();
+        ctx.ellipse(-3, 3, 2, 3.5, 0.3, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
     }
 
@@ -3430,6 +3805,7 @@ function drawCardBackground(ctx, worldType) {
         cheetah: ['#e8a040', '#f5d080'],
         pterodactyl: ['#c8a8e0', '#e0c8f0'],
         pikachu: ['#6ec6ff', '#fff6b0'],
+        squirtle: ['#4ab8e8', '#0a3a7a'],
         bird: ['#87CEEB', '#d0eaff'],
     };
     const sky = skyMap[worldType] || ['#87CEEB', '#d0eaff'];
@@ -3604,6 +3980,45 @@ function drawCardBackground(ctx, worldType) {
         ctx.fillRect(0, gy, W, H - gy);
         // Poké Ball in the grass
         drawPokeBall(ctx, 100, gy - 5, 6);
+    } else if (worldType === 'squirtle') {
+        // Seaweed
+        ctx.strokeStyle = '#2a9a5a';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        for (const sx of [12, 18]) {
+            ctx.beginPath();
+            ctx.moveTo(sx, gy);
+            ctx.quadraticCurveTo(sx + 6, gy - 20, sx - 2, gy - 40);
+            ctx.stroke();
+        }
+        // Little fish
+        ctx.fillStyle = '#ff8c42';
+        ctx.beginPath();
+        ctx.ellipse(98, 25, 7, 4, 0, 0, Math.PI * 2);
+        ctx.moveTo(104, 25);
+        ctx.lineTo(110, 21);
+        ctx.lineTo(110, 29);
+        ctx.fill();
+        // Bubbles
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 1;
+        for (const [bx, by, br] of [[30, 30, 3], [36, 18, 2], [90, 50, 2.5]]) {
+            ctx.beginPath();
+            ctx.arc(bx, by, br, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        // Sand
+        ctx.fillStyle = '#e8d098';
+        ctx.fillRect(0, gy, W, H - gy);
+        // Starfish
+        ctx.fillStyle = '#ffb347';
+        ctx.beginPath();
+        for (let k = 0; k < 10; k++) {
+            const a = -Math.PI / 2 + k * Math.PI / 5;
+            const r = k % 2 ? 2.5 : 6;
+            ctx.lineTo(100 + Math.cos(a) * r, gy + 6 + Math.sin(a) * r);
+        }
+        ctx.fill();
     } else if (worldType === 'lion') {
         // Cheering animals silhouettes
         // Small zebra
@@ -4100,7 +4515,8 @@ function startVictoryDance(worldType) {
                       worldType === 'lion' ? '#e8b840' :
                       worldType === 'ankylo' ? '#a09060' :
                       worldType === 'pterodactyl' ? '#7ec8b0' :
-                      worldType === 'pikachu' ? '#ffd83a' : '#7ec8e3';
+                      worldType === 'pikachu' ? '#ffd83a' :
+                      worldType === 'squirtle' ? '#7ac8f0' : '#7ec8e3';
 
         const darkColor = worldType === 'dino' ? '#6bb8d4' :
                           worldType === 'dog' ? '#5cb3d0' :
@@ -4111,7 +4527,8 @@ function startVictoryDance(worldType) {
                           worldType === 'lion' ? '#c08028' :
                           worldType === 'ankylo' ? '#7a6a40' :
                           worldType === 'pterodactyl' ? '#5a9a80' :
-                          worldType === 'pikachu' ? '#e8b820' : '#6bb8d4';
+                          worldType === 'pikachu' ? '#e8b820' :
+                          worldType === 'squirtle' ? '#4aa0d0' : '#6bb8d4';
 
         // Legs (dancing!)
         const legL = Math.sin(frame * 0.3) * 8;
@@ -4139,7 +4556,8 @@ function startVictoryDance(worldType) {
                         worldType === 'lion' ? '#f5d880' :
                         worldType === 'ankylo' ? '#c8b880' :
                         worldType === 'pterodactyl' ? '#b8e8d8' :
-                        worldType === 'pikachu' ? '#ffe680' : '#b8e6f5';
+                        worldType === 'pikachu' ? '#ffe680' :
+                        worldType === 'squirtle' ? '#f5e0a0' : '#b8e6f5';
         if (worldType === 'meerkat') ctx.fillStyle = '#eed8a8';
         if (worldType === 'warthog') ctx.fillStyle = '#c8956a';
         ctx.beginPath();
@@ -5391,6 +5809,137 @@ function drawPikachuFigure(ctx, { bobY = 0, lo1 = 0, lo2 = 0, sparks = false, fr
     }
 }
 
+// ─── Squirtle drawing (shared by game, card) ──────────────
+// Origin is between the feet, facing right.
+function drawSquirtleFigure(ctx, { bobY = 0, lo1 = 0, lo2 = 0, bubbles = false, frame = 0 }) {
+    const blue = '#7ac8f0';
+    const darkBlue = '#4aa0d0';
+    const shellBrown = '#a0602a';
+    const cream = '#f5e0a0';
+
+    // Curly tail
+    ctx.fillStyle = blue;
+    ctx.beginPath();
+    ctx.ellipse(-20, -16 + bobY, 8, 6, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = darkBlue;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(-24, -22 + bobY, 5, Math.PI * 0.3, Math.PI * 1.9);
+    ctx.stroke();
+
+    // Feet
+    ctx.fillStyle = darkBlue;
+    ctx.beginPath();
+    ctx.ellipse(-6 + lo1, -3, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = blue;
+    ctx.beginPath();
+    ctx.ellipse(7 + lo2, -3, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Shell (back)
+    ctx.fillStyle = shellBrown;
+    ctx.beginPath();
+    ctx.ellipse(-4, -20 + bobY, 15, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Shell white rim
+    ctx.strokeStyle = '#fff8e8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(-4, -20 + bobY, 15, 16, 0, Math.PI * 0.4, Math.PI * 1.6);
+    ctx.stroke();
+
+    // Belly (cream plates)
+    ctx.fillStyle = cream;
+    ctx.beginPath();
+    ctx.ellipse(4, -19 + bobY, 11, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#d8b870';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-5, -24 + bobY);
+    ctx.lineTo(13, -24 + bobY);
+    ctx.moveTo(-6, -16 + bobY);
+    ctx.lineTo(14, -16 + bobY);
+    ctx.moveTo(4, -32 + bobY);
+    ctx.lineTo(4, -6 + bobY);
+    ctx.stroke();
+
+    // Little arm
+    ctx.fillStyle = blue;
+    ctx.beginPath();
+    ctx.ellipse(12, -24 + bobY, 6, 3.5, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Head (big round)
+    ctx.fillStyle = blue;
+    ctx.beginPath();
+    ctx.ellipse(6, -44 + bobY, 16, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes (big, reddish-brown)
+    for (const ex of [3, 15]) {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.ellipse(ex, -47 + bobY, 4, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#8a3a2a';
+        ctx.beginPath();
+        ctx.ellipse(ex + 1, -46.5 + bobY, 3, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(ex + 1.3, -46 + bobY, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(ex + 2, -48 + bobY, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Big happy smile
+    ctx.fillStyle = '#c0504a';
+    ctx.beginPath();
+    ctx.arc(11, -37 + bobY, 5, 0.1, Math.PI - 0.1);
+    ctx.fill();
+    ctx.strokeStyle = '#2a5a7a';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(11, -37 + bobY, 5, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+
+    // Water bubbles while jumping!
+    if (bubbles) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.fillStyle = 'rgba(170,225,255,0.5)';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 3; i++) {
+            const t = ((frame + i * 8) % 24) / 24;
+            const bx = 24 + i * 4 + t * 10;
+            const by = -38 + bobY - t * 22;
+            ctx.beginPath();
+            ctx.arc(bx, by, 2.5 + i, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+}
+
+function drawSquirtleCard() {
+    const canvas = document.getElementById('squirtle-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 120, 120);
+    drawCardBackground(ctx, 'squirtle');
+    ctx.save();
+    ctx.translate(58, 95);
+    ctx.scale(0.95, 0.95);
+    drawSquirtleFigure(ctx, {});
+    ctx.restore();
+}
+
 function drawPikachuCard() {
     const canvas = document.getElementById('pikachu-card-canvas');
     if (!canvas) return;
@@ -5778,6 +6327,7 @@ window.addEventListener('DOMContentLoaded', () => {
     drawCheetahCard();
     drawPterodactylCard();
     drawPikachuCard();
+    drawSquirtleCard();
     drawAnkyloCard();
     drawLionCard();
     drawBirdCard();
